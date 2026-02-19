@@ -240,9 +240,8 @@ const handleSubmit = async (e) => {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3.5 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md"
-            >
-              Create Student Account
+              className="w-full bg-blue-600 text-white py-3.5 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md">
+              Register
             </button>
 
             <p className="text-center text-slate-600 text-sm">

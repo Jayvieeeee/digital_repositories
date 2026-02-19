@@ -3,11 +3,13 @@ import { GraduationCap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../../Layout/AuthLayout';
 import api from '../../api/axios';
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -42,8 +44,8 @@ const handleSubmit = async (e) => {
 
         {/* Icon */}
         <div className="flex justify-center mb-6">
-          <div className="bg-blue-100 p-5 rounded-full">
-            <GraduationCap className="w-10 h-10 text-blue-600" />
+          <div className="bg-[#134F4F] p-5 rounded-full">
+            <GraduationCap className="w-10 h-10 text-white" />
           </div>
         </div>
 
@@ -73,31 +75,27 @@ const handleSubmit = async (e) => {
           </div>
 
           {/* Password */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label htmlFor="password" className="block text-sm">
-                Password
-              </label>
-              <button
-                type="button"
-                onClick={() => navigate('/forgot-password')}
-                className="text-xs text-blue-500 hover:text-blue-700 font-medium">
-                Forgot Password?
-              </button>
-            </div>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            />
-          </div>
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 pr-10 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"/>
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors">
+            {showPassword
+              ? <AiOutlineEyeInvisible size={20} />
+              : <AiOutlineEye size={20} />
+            }
+          </button>
+        </div>
 
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md mt-6"
+            className="w-full bg-[#1A6C6C] text-white py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md mt-6"
           >
             Log In
           </button>

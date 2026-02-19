@@ -112,7 +112,7 @@ export default function AcademicResearchLanding() {
         <div className="grid lg:grid-cols-2 gap-5 items-start">
           
           {/* LEFT SIDE*/}
-          <div className="bg-gradient-to-br from-[#0D3796] to-[#155DFC] rounded-3xl p-8 text-white shadow-xl">
+          <div className="bg-[#134F4F] rounded-3xl p-8 text-white shadow-xl">
             <div className="flex items-start gap-4 mb-6">
               <div className="bg-white p-4 rounded-2xl">
                 <Search className="w-8 h-8 text-blue-600" />
@@ -208,7 +208,7 @@ export default function AcademicResearchLanding() {
             
             {/* Upload */}
             <div className="flex flex-col items-center text-center relative px-8 md:px-4">
-              <div className="bg-blue-600 p-6 rounded-2xl mb-6 shadow-lg">
+              <div className="bg-[#134F4F] p-6 rounded-2xl mb-6 shadow-lg">
                 <Upload className="w-12 h-12 text-white" strokeWidth={2.5} />
               </div>
               <h3 className="text-2xl font-semibold text-slate-900 mb-3">
@@ -222,16 +222,16 @@ export default function AcademicResearchLanding() {
               <div className="hidden md:block absolute top-12 right-0 left-auto w-1/2">
                 <div className="flex items-center justify-start translate-x-1/2">
                   {[...Array(10)].map((_, i) => (
-                    <div key={i} className="w-2 h-2 bg-blue-600 rounded-full mx-1"></div>
+                    <div key={i} className="w-2 h-2 bg-[#134F4F] rounded-full mx-1"></div>
                   ))}
-                  <ChevronRight className="w-10 h-10 text-blue-600 ml-2" strokeWidth={2.5} />
+                  <ChevronRight className="w-10 h-10 text-[#134F4F] ml-2" strokeWidth={2.5} />
                 </div>
               </div>
             </div>
 
             {/*  Review */}
             <div className="flex flex-col items-center text-center relative px-8 md:px-4">
-              <div className="bg-blue-600 p-6 rounded-2xl mb-6 shadow-lg">
+              <div className="bg-[#134F4F] p-6 rounded-2xl mb-6 shadow-lg">
                 <CheckCircle className="w-12 h-12 text-white" strokeWidth={2.5} />
               </div>
               <h3 className="text-2xl font-semibold text-slate-900 mb-3">
@@ -245,16 +245,16 @@ export default function AcademicResearchLanding() {
               <div className="hidden md:block absolute top-12 right-0 left-auto w-1/2">
                 <div className="flex items-center justify-start translate-x-1/2">
                   {[...Array(10)].map((_, i) => (
-                    <div key={i} className="w-2 h-2 bg-blue-600 rounded-full mx-1"></div>
+                    <div key={i} className="w-2 h-2 bg-[#134F4F] rounded-full mx-1"></div>
                   ))}
-                  <ChevronRight className="w-10 h-10 text-blue-600 ml-2" strokeWidth={2.5} />
+                  <ChevronRight className="w-10 h-10 text-[#134F4F] ml-2" strokeWidth={2.5} />
                 </div>
               </div>
             </div>
 
             {/*  Search */}
             <div className="flex flex-col items-center text-center px-8 md:px-4">
-              <div className="bg-blue-600 p-6 rounded-2xl mb-6 shadow-lg">
+              <div className="bg-[#134F4F] p-6 rounded-2xl mb-6 shadow-lg">
                 <BookOpen className="w-12 h-12 text-white" strokeWidth={2.5} />
               </div>
               <h3 className="text-2xl font-semibold mb-3">
@@ -288,10 +288,10 @@ export default function AcademicResearchLanding() {
           {/* Academic Integrity */}
           <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
             {/* Decorative Blob */}
-            <div className="absolute -top-12 -right-12 w-40 h-40 bg-blue-200/40 rounded-full"></div>
+            <div className="absolute -top-12 -right-12 w-40 h-40 bg-gradient-to-br from-[#E4EAF3] to-white rounded-full"></div>
             
             <div className="flex items-start gap-5 relative z-10">
-              <div className="bg-blue-600 p-4 rounded-2xl flex-shrink-0">
+              <div className="bg-[#134F4F] p-4 rounded-2xl flex-shrink-0">
                 <Shield className="w-8 h-8 text-white" strokeWidth={2} />
               </div>
               <div>
@@ -308,10 +308,10 @@ export default function AcademicResearchLanding() {
           {/* Faster Literature Review */}
           <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
             {/* Decorative Blob */}
-           <div className="absolute -top-12 -right-12 w-40 h-40 bg-blue-200/40 rounded-full"></div>
+           <div className="absolute -top-12 -right-12 w-40 h-40 bg-gradient-to-br from-[#E4EAF3] to-white rounded-full"></div>
             
             <div className="flex items-start gap-5 relative z-10">
-              <div className="bg-blue-600 p-4 rounded-2xl flex-shrink-0">
+              <div className="bg-[#134F4F] p-4 rounded-2xl flex-shrink-0">
                 <Zap className="w-8 h-8 text-white" strokeWidth={2} />
               </div>
               <div>
@@ -328,10 +328,10 @@ export default function AcademicResearchLanding() {
           {/* Centralized Knowledge */}
           <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
             {/* Decorative Blob */}
-             <div className="absolute -top-12 -right-12 w-40 h-40 bg-blue-200/40 rounded-full"></div>
+             <div className="absolute -top-12 -right-12 w-40 h-40 bg-gradient-to-br from-[#E4EAF3] to-white rounded-full"></div>
             
             <div className="flex items-start gap-5 relative z-10">
-              <div className="bg-blue-600 p-4 rounded-2xl flex-shrink-0">
+              <div className="bg-[#134F4F] p-4 rounded-2xl flex-shrink-0">
                 <Database className="w-8 h-8 text-white" strokeWidth={2} />
               </div>
               <div>
@@ -348,10 +348,10 @@ export default function AcademicResearchLanding() {
           {/* Research Visibility */}
           <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
             {/* Decorative Blob */}
-              <div className="absolute -top-12 -right-12 w-40 h-40 bg-blue-200/40 rounded-full"></div>
+              <div className="absolute -top-12 -right-12 w-40 h-40 bg-gradient-to-br from-[#E4EAF3] to-white rounded-full"></div>
             
             <div className="flex items-start gap-5 relative z-10">
-              <div className="bg-blue-600 p-4 rounded-2xl flex-shrink-0">
+              <div className="bg-[#134F4F] p-4 rounded-2xl flex-shrink-0">
                 <Award className="w-8 h-8 text-white" strokeWidth={2} />
               </div>
               <div>
@@ -369,7 +369,7 @@ export default function AcademicResearchLanding() {
       </div>
     </section>
 
-    <section className="bg-gradient-to-r from-[#2558CB] to-[#122C65] py-24 px-6">
+    <section className="bg-gradient-to-r from-[#134F4F] to-[#00281E] py-24 px-6">
       <div className="max-w-5xl mx-auto text-center">
         {/* Heading */}
         <h2 className="text-5xl md:text-6xl font-bold text-white mb-6">

@@ -26,11 +26,11 @@ export default function ChooseRegistrationType() {
           {/* Student Card */}
           <div
             onClick={() => navigate('/register-student')}
-            className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+            className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-[#134F4F] hover:shadow-lg transition-all duration-300 cursor-pointer group"
           >
             {/* Icon */}
             <div className="flex justify-center mb-6">
-              <div className="bg-blue-600 p-5 rounded-full group-hover:scale-110 transition-transform duration-300">
+              <div className="bg-[#134F4F] p-5 rounded-full group-hover:scale-110 transition-transform duration-300">
                 <GraduationCap className="w-10 h-10 text-white" strokeWidth={2} />
               </div>
             </div>
@@ -48,19 +48,19 @@ export default function ChooseRegistrationType() {
             {/* Features List */}
             <ul className="space-y-2 text-slate-700">
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+                <span className="text-[#134F4F]">•</span>
                 <span>Upload your research papers</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+                <span className="text-[#134F4F]">•</span>
                 <span>Browse your school's repository</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+                <span className="text-[#134F4F]">•</span>
                 <span>Request inter-school access</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+                <span className="text-[#134F4F]">•</span>
                 <span>Track your paper citations</span>
               </li>
             </ul>
@@ -69,11 +69,11 @@ export default function ChooseRegistrationType() {
           {/* Institution Card */}
           <div
             onClick={() => navigate('/register-institution')}
-            className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+            className="bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-[#134F4F] hover:shadow-lg transition-all duration-300 cursor-pointer group"
           >
             {/* Icon */}
             <div className="flex justify-center mb-6">
-              <div className="bg-blue-600 p-5 rounded-full group-hover:scale-110 transition-transform duration-300">
+              <div className="bg-[#134F4F] p-5 rounded-full group-hover:scale-110 transition-transform duration-300">
                 <Building2 className="w-10 h-10 text-white" strokeWidth={2} />
               </div>
             </div>
@@ -91,19 +91,19 @@ export default function ChooseRegistrationType() {
             {/* Features List */}
             <ul className="space-y-2 text-slate-700">
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+                <span className="text-[#134F4F]">•</span>
                 <span>Manage school repository</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+                <span className="text-[#134F4F]">•</span>
                 <span>Create adviser accounts</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+                <span className="text-[#134F4F]">•</span>
                 <span>Approve student registrations</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 mt-1">•</span>
+                <span className="text-[#134F4F]">•</span>
                 <span>Handle inter-school requests</span>
               </li>
             </ul>
@@ -116,8 +116,7 @@ export default function ChooseRegistrationType() {
           Already have an account?{' '}
           <span
             onClick={() => navigate('/login')}
-            className="text-blue-600 hover:text-blue-700 font-medium hover:underline cursor-pointer"
-          >
+            className="text-blue-600 hover:text-blue-700 font-medium hover:underline cursor-pointer">
             Login here
           </span>
         </p>

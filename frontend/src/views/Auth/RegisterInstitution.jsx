@@ -10,10 +10,9 @@ export default function InstitutionRegistration() {
     schoolAddress: '',
     schoolType: '',
     contactNumber: '',
-    emailAddress: '',
+    email: '',
     librarianFirstName: '',
     librarianLastName: '',
-    emailAddress2: '',
     password: '',
     confirmPassword: ''
   });
@@ -47,14 +46,14 @@ const handleSubmit = async (e) => {
     form.append("schoolAddress", formData.schoolAddress);
     form.append("schoolType", formData.schoolType);
     form.append("contactNumber", formData.contactNumber);
-    form.append("emailAddress", formData.emailAddress);
 
     // Librarian Information
     form.append("librarianFirstName", formData.librarianFirstName);
     form.append("librarianLastName", formData.librarianLastName);
-    form.append("emailAddress2", formData.emailAddress2);
     form.append("password", formData.password);
     form.append("password_confirmation", formData.confirmPassword);
+
+    form.append("email", formData.email);
 
     // Required File
     if (certificationFile) {
@@ -158,13 +157,12 @@ const handleSubmit = async (e) => {
                     className="w-full px-3 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select School Type</option>
-                    <option value="university">University</option>
-                    <option value="college">College</option>
-                    <option value="institute">Institute</option>
+                    <option value="university">Public</option>
+                    <option value="college">Private</option>
                   </select>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-3">
+                <div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1">
                       Contact Number *
@@ -175,19 +173,6 @@ const handleSubmit = async (e) => {
                       value={formData.contactNumber}
                       onChange={handleInputChange}
                       placeholder="+63 912 345 6789"
-                      className="w-full px-3 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      name="emailAddress"
-                      value={formData.emailAddress}
-                      onChange={handleInputChange}
-                      placeholder="library@usc.edu.ph"
                       className="w-full px-3 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -292,8 +277,8 @@ const handleSubmit = async (e) => {
                   </label>
                   <input
                     type="email"
-                    name="emailAddress2"
-                    value={formData.emailAddress2}
+                    name="email"
+                    value={formData.email}
                     onChange={handleInputChange}
                     placeholder="librarian@usc.edu.ph"
                     className="w-full px-3 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -351,9 +336,8 @@ const handleSubmit = async (e) => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold text-sm hover:bg-teal-700 transition shadow-sm"
-            >
-              Create Student Account
+              className="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold text-sm hover:bg-teal-700 transition shadow-sm">
+              Register
             </button>
 
             {/* Login Link */}

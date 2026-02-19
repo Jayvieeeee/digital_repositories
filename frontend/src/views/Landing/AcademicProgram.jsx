@@ -23,19 +23,19 @@ export default function ExploreAcademicPrograms() {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             <div className="text-center p-5 border border-gray-200 rounded-md">
-              <div className="text-4xl font-bold text-blue-600 mb-1">1,231</div>
+              <div className="text-4xl font-bold text-[#134F4F] mb-1">1,231</div>
               <div className="text-sm text-slate-600">Academic Programs</div>
             </div>
             <div className="text-center p-5 border border-gray-200 rounded-md">
-              <div className="text-4xl font-bold text-blue-600 mb-1">6</div>
+              <div className="text-4xl font-bold text-[#134F4F] mb-1">6</div>
               <div className="text-sm text-slate-600">Academic Programs</div>
             </div>
             <div className="text-center p-5 border border-gray-200 rounded-md">
-              <div className="text-4xl font-bold text-blue-600 mb-1">231</div>
+              <div className="text-4xl font-bold text-[#134F4F] mb-1">231</div>
               <div className="text-sm text-slate-600">Researchers</div>
             </div>
             <div className="text-center p-5 border border-gray-200 rounded-md">
-              <div className="text-4xl font-bold text-blue-600 mb-1">51</div>
+              <div className="text-4xl font-bold text-[#134F4F] mb-1">51</div>
               <div className="text-sm text-slate-600">New This Month</div>
             </div>
           </div>
@@ -49,7 +49,7 @@ export default function ExploreAcademicPrograms() {
             Featured Research This Week
           </h2>
 
-          <div className="bg-blue-50 rounded-2xl p-8 border border-blue-400">
+          <div className="bg-blue-50 rounded-2xl p-8 border border-[#134F4F]">
             <h3 className="text-4xl font-base leading-24 mb-3">
               Machine Learning Applications in Healthcare Diagnostics: A Comprehensive Analysis
             </h3>

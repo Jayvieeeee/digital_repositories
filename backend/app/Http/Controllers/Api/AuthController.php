@@ -22,29 +22,38 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $request->validate([    
+        $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $user = User::with('school')->where('email', $request->email)->first();
+        $user = User::with('school')
+                    ->where('email', $request->email)
+                    ->first();
 
-        //Check credentials first
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => ['Account not found.'],
             ]);
         }
 
-        //Check if user is approved
-        if ($user->status !== 'approved') {
+        if (!Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Your account is not approved yet.'],
+                'password' => ['Incorrect password.'],
             ]);
         }
 
-        //Check if school is approved
-        if (!$user->school || $user->school->status !== 'approved') {
+        // Student must be active
+        if ($user->role === 'student' && $user->status !== 'active') {
+            throw ValidationException::withMessages([
+                'email' => ['Your student account is not activated yet.'],
+            ]);
+        }
+
+        // School must be approved
+        if ($user->role === 'school' &&
+            (!$user->school || $user->school->status !== 'approved')) {
+
             throw ValidationException::withMessages([
                 'email' => ['Your institution is not approved yet.'],
             ]);
@@ -52,9 +61,10 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $user->createToken('api-token')->plainTextToken,
-            'user' => new UserResource($user)
+            'user'  => new UserResource($user),
         ]);
     }
+
 
     /**
      * Get authenticated user
@@ -65,7 +75,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Logout user (revoke token)
+     * Logout user 
      */
     public function logout(Request $request)
     {
@@ -101,7 +111,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $user->createToken('api-token')->plainTextToken,
-            'user' => new UserResource($user) // Use resource
+            'user' => new UserResource($user) 
         ], 201);
     }
 
@@ -116,13 +126,13 @@ class AuthController extends Controller
             'schoolAddress'     => 'required|string|max:255',
             'schoolType'        => 'required|string|max:255',
             'contactNumber'     => 'required|string|max:11',
-            'emailAddress'      => 'required|email|unique:schools,email',
 
             // Librarian
             'librarianFirstName'=> 'required|string|max:255',
             'librarianLastName' => 'required|string|max:255',
-            'emailAddress2'     => 'required|email|unique:users,email',
             'password'          => 'required|min:8|confirmed',
+
+            'email' => 'required|email|unique:users,email',
 
             // File
             'certification_file'=> 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
@@ -133,8 +143,7 @@ class AuthController extends Controller
         try {
 
             // Store certification file
-            $proofPath = $request->file('certification_file')
-                ->store('proofs', 'public');
+            $proofPath = $request->file('certification_file')->store('proofs', 'public');
 
             // Create School
             $school = School::create([
@@ -142,7 +151,7 @@ class AuthController extends Controller
                 'school_address'     => $request->schoolAddress,
                 'school_type'        => $request->schoolType,
                 'contact_number'     => $request->contactNumber,
-                'email'              => $request->emailAddress,
+                'email'              => $request->email,
                 'proof_of_legitimacy'=> $proofPath,
                 'status'             => 'pending',
             ]);
@@ -151,8 +160,8 @@ class AuthController extends Controller
             $user = User::create([
                 'first_name' => $request->librarianFirstName,
                 'last_name'  => $request->librarianLastName,
-                'email'      => $request->emailAddress2,
                 'password'   => Hash::make($request->password), 
+                'email'      => $request->email,
                 'role'       => 'school',
                 'status'     => 'pending',
                 'school_id'  => $school->school_id,
@@ -187,9 +196,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         // Check for existing code
-        $existing = DB::table('password_reset_codes')
-            ->where('email', $user->email)
-            ->first();
+        $existing = DB::table('password_reset_codes')->where('email', $user->email)->first();
 
         if ($existing) {
 

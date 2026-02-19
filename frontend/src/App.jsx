@@ -9,6 +9,7 @@ import RegisterInstitution from './views/Auth/RegisterInstitution';
 import ForgotPassword from './views/Auth/ForgotPassword';
 import VerifyCode from './views/Auth/VerifyCode';
 import ResetPassword from './views/Auth/ResetPassword';
+
 import StudentDashboard from './views/Student/Dashborad';
 
 export default function App() {

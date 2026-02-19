@@ -3,7 +3,7 @@ import { MapPin, Phone, Mail } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-white">
+    <footer className="bg-[#00281E] text-white">
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Top Section - 3 Columns */}
         <div className="grid md:grid-cols-3 gap-12 mb-12">
