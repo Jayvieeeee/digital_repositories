@@ -1,4 +1,3 @@
-import StudentLayout from "../../Layout/StudentLayout";
 import { IoDocumentTextOutline, IoEyeOutline, IoSendOutline,IoCloudUploadOutline,IoAddOutline,IoEllipseSharp } from "react-icons/io5";
 
 export default function Dashboard() {
@@ -40,16 +39,16 @@ export default function Dashboard() {
   ];
 
   return (
-    <StudentLayout>
+    <>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-4 mx-4">
         {/* Uploaded Papers */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-white rounded-xl p-4 shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-              <IoDocumentTextOutline className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+              <IoDocumentTextOutline className="w-10 h-10 text-blue-600" />
             </div>
-            <span className="text-3xl font-bold text-gray-900">{stats.uploadedPapers}</span>
+            <span className="text-4xl font-bold">{stats.uploadedPapers}</span>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">Uploaded Papers</h3>
           <button className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
@@ -58,12 +57,12 @@ export default function Dashboard() {
         </div>
 
         {/* Citations */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-white rounded-xl p-4 shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-              <IoEyeOutline className="w-6 h-6 text-purple-600" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+              <IoEyeOutline className="w-10 h-10 text-purple-600" />
             </div>
-            <span className="text-3xl font-bold text-gray-900">{stats.citations}</span>
+            <span className="text-4xl font-bold">{stats.citations}</span>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">Citations</h3>
           <button className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">
@@ -72,12 +71,12 @@ export default function Dashboard() {
         </div>
 
         {/* Access Request */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-white rounded-xl p-4 shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-              <IoSendOutline className="w-6 h-6 text-green-600" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+              <IoSendOutline className="w-10 h-10 text-green-600" />
             </div>
-            <span className="text-3xl font-bold text-gray-900">{stats.accessRequests}</span>
+            <span className="text-4xl font-bold">{stats.accessRequests}</span>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">Access Request</h3>
           <button className="text-xs text-green-600 hover:text-green-700 font-medium flex items-center gap-1">
@@ -86,10 +85,10 @@ export default function Dashboard() {
         </div>
 
         {/* Upload Research */}
-        <div className="bg-teal-600 rounded-xl p-6 shadow-sm cursor-pointer hover:bg-teal-700 transition-colors">
+        <div className="bg-gradient-to-r from-[#134F4F] to-[#1F606B] rounded-xl p-4 shadow-md cursor-pointer hover:bg-teal-700 transition-colors">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <IoCloudUploadOutline className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+              <IoCloudUploadOutline className="w-10 h-10 text-white" />
             </div>
             <IoAddOutline className="w-8 h-8 text-white" />
           </div>
@@ -100,9 +99,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mx-4">
         {/* My Submissions - Donut Chart */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-white rounded-xl p-6 shadow-md">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">My Submissions</h2>
           
           <div className="flex items-center justify-center gap-8">
@@ -186,11 +185,11 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Access Request</h2>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             {accessRequests.map((request) => (
               <div 
                 key={request.id}
-                className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                className="p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-900 flex-1 pr-4">
@@ -207,6 +206,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    </StudentLayout>
+    </>
   );
 }

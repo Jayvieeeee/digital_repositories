@@ -1,30 +1,64 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Student/SideBar";
+import api from "../api/axios";
 
-export default function StudentLayout({ children }) {
-  const [active, setActive] = useState("dashboard");
+export default function StudentLayout() {
+  const [user, setUser] = useState(null);
+  const location = useLocation();
 
-  const navItems = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "browse", label: "Browse Research" },
-    { id: "my-researches", label: "My Researches" },
-    { id: "access", label: "Access Request" },
-    { id: "settings", label: "Settings" },
-  ];
+  // Fetch logged-in user
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await api.get("/user");
+        setUser(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchUser();
+  }, []);
 
-  const activeItem = navItems.find((item) => item.id === active)?.label;
+  if (!user) return null; // Or a spinner
+
+  // Map route path to page title
+  const routeTitles = {
+    "/student-dashboard": "Dashboard",
+    "/browse-research": "Browse Research",
+    "/my-researches": "My Researches",
+    "/access-requests": "Access Requests",
+    "/settings": "Settings",
+  };
+
+  const pageTitle = routeTitles[location.pathname] || "";
 
   return (
     <div className="flex">
-      {/* Sidebar - Fixed */}
-      <Sidebar active={active} setActive={setActive} />
+      {/* Sidebar */}
+      <Sidebar user={user} />
 
-      {/* Main Content - With left margin for fixed sidebar */}
-      <div className="flex-1 ml-64 p-6 bg-[#F9FAFB] min-h-screen">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">
-          {activeItem}
-        </h1>
-        {children}
+      {/* Main content */}
+      <div className="flex-1 ml-64 min-h-screen bg-[#F9FAFB] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b bg-white shadow-sm sticky top-0 z-10">
+          <h1 className="text-2xl font-semibold text-gray-900">{pageTitle}</h1>
+
+          <div className="flex items-center gap-4">
+            {/* Example: Student info */}
+            <span className="px-3 py-1 text-sm bg-gray-100 rounded-full text-gray-800">
+              {user.program || "Computer Science - 4th Year"}
+            </span>
+            <span className="px-3 py-1 text-sm bg-gray-100 rounded-full text-gray-800">
+              ID: {user.student_id || "2023-2432"}
+            </span>
+          </div>
+        </div>
+
+        {/* Page content */}
+        <div className="flex-1 p-6">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
