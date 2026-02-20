@@ -74,8 +74,18 @@ const handleSubmit = async (e) => {
             />
           </div>
 
+          <div>
+          </div>
+
           {/* Password */}
         <div className="relative">
+          <label htmlFor="password" className="block text-sm mb-2">
+              Password
+          </label>
+            <span className="text-xs pb-2 absolute right-3 top-1/4 -translate-y-1/2 text-blue-600 hover:text-blue-800 cursor-pointer"
+              onClick={() => navigate('/forgot-password')}>
+              Forgot Password?
+            </span>
           <input
             type={showPassword ? "text" : "password"}
             value={password}
@@ -84,7 +94,7 @@ const handleSubmit = async (e) => {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors">
+            className="absolute right-3 top-2/3 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors">
             {showPassword
               ? <AiOutlineEyeInvisible size={20} />
               : <AiOutlineEye size={20} />
