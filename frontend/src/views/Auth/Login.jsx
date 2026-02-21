@@ -8,34 +8,40 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const response = await api.post("/login", {
-      email,
-      password,
-    });
+    try {
+      const response = await api.post("/login", {
+        email,
+        password,
+      });
 
-    // Save token
-    localStorage.setItem("token", response.data.token);
+      const { token, user } = response.data;
 
-    // Optional: Save user info
-    localStorage.setItem("user", JSON.stringify(response.data.user));
+      // Save authentication data
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
-    console.log("Login successful:", response.data);
+      console.log("Login successful:", response.data);
 
-    // Redirect to dashboard
-    navigate("/student-dashboard");
+      // Role Map 
+      const roleRoutes = {
+        student: "/student-dashboard",
+        school: "/school-dashboard",
+        admin: "/admin-dashboard"
+      };
 
-  } catch (error) {
-    console.error("Login failed:", error.response?.data);
-    alert(error.response?.data?.message);
-  }
-};
+      navigate(roleRoutes[user.role] || "/");
+
+    } catch (error) {
+      console.error("Login failed:", error.response?.data);
+      alert(error.response?.data?.message || "Invalid credentials");
+    }
+  };
 
 
   return (

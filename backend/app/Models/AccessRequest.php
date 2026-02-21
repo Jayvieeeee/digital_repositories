@@ -9,7 +9,7 @@ class AccessRequest extends Model
 {
     use HasFactory;
 
-    protected $table = 'access_request';
+    protected $table = 'access_requests';
     protected $primaryKey = 'request_id';
     public $timestamps = true;
 

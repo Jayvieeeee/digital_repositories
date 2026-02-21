@@ -15,18 +15,73 @@ class StudentController extends Controller
     /* ======================================
         DASHBOARD
     ====================================== */
-    public function dashboardSummary()
+    public function dashboard()
     {
         $user = Auth::user();
 
-        $uploads = ResearchPaper::where('student_id', $user->id)->count();
+        // Find the student record for this user
+        $student = $user->student;
 
-        $requests = AccessRequest::where('student_id', $user->id)->count();
+        $uploads = $student 
+            ? $student->uploadedPapers()->count() 
+            : 0;
+
+        $requests = AccessRequest::where('requesting_user_id', $user->user_id)->count();
 
         return response()->json([
             'uploads' => $uploads,
+            'citations' => 0, // future feature
             'requests' => $requests
         ]);
+}
+
+    public function submissionsStatus()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return response()->json([
+                'pendingReview' => 0,
+                'needsRevision' => 0,
+                'approved' => 0,
+                'rejected' => 0
+            ]);
+        }
+
+        $pendingReview = $student->uploadedPapers()->where('status', 'pending')->count();
+        $needsRevision = $student->uploadedPapers()->where('status', 'revision')->count();
+        $approved = $student->uploadedPapers()->where('status', 'approved')->count();
+        $rejected = $student->uploadedPapers()->where('status', 'rejected')->count();
+
+        return response()->json([
+            'pendingReview' => $pendingReview,
+            'needsRevision' => $needsRevision,
+            'approved' => $approved,
+            'rejected' => $rejected
+        ]);
+    }
+
+    public function accessRequests()
+    {
+        $user = Auth::user();
+
+        $requests = AccessRequest::with('paper')
+            ->where('requesting_user_id', $user->user_id)
+            ->latest()
+            ->get();
+
+        return response()->json(
+            $requests->map(function ($req) {
+                return [
+                    'id' => $req->request_id,
+                    'title' => $req->paper->title ?? 'Untitled Research',
+                    'subject' => $req->paper->subject ?? 'N/A',
+                    'requestedDate' => optional($req->request_date ?? $req->created_at)->format('m/d/Y'),
+                    'status' => ucfirst($req->status)
+                ];
+            })
+        );
     }
 
 
@@ -108,44 +163,54 @@ class StudentController extends Controller
     ====================================== */
     public function upload(Request $request)
     {
-        $student = Auth::user();
+        $user = Auth::user();
+        $student = $user->student;
 
+        if (!$student) {
+            return response()->json([
+                'message' => 'Student record not found.'
+            ], 404);
+        }
+
+        // Validate input
         $request->validate([
-            'title' => 'required',
-            'abstract' => 'required',
-            'document_type' => 'required',
+            'title' => 'required|string|max:255',
+            'abstract' => 'required|string',
+            'document_type' => 'required|string|max:50',
             'year' => 'required|integer',
-            'file' => 'required|file|mimes:pdf|max:20480'
+            'file' => 'required|file|mimes:pdf,doc,docx|max:20480' // max 20MB
         ]);
 
         DB::beginTransaction();
 
         try {
-
+            // Store uploaded file
             $path = $request->file('file')->store('papers', 'public');
 
+            // Create the research paper record
             $paper = ResearchPaper::create([
-                'student_id' => $student->id,
+                'uploaded_student_id' => $student->student_id, // important!
                 'school_id' => $student->school_id,
                 'title' => $request->title,
                 'abstract' => $request->abstract,
                 'document_type' => $request->document_type,
                 'year' => $request->year,
-                'file_path' => $path
+                'file_path' => $path,
+                'status' => 'pending' // default status
             ]);
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Uploaded',
+                'message' => 'Paper uploaded successfully.',
                 'paper' => $paper
-            ]);
-        } catch (\Exception $e) {
+            ], 201);
 
+        } catch (\Exception $e) {
             DB::rollBack();
 
             return response()->json([
-                'message' => 'Upload failed',
+                'message' => 'Upload failed.',
                 'error' => $e->getMessage()
             ], 500);
         }

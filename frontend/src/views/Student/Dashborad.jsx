@@ -1,42 +1,94 @@
-import { IoDocumentTextOutline, IoEyeOutline, IoSendOutline,IoCloudUploadOutline,IoAddOutline,IoEllipseSharp } from "react-icons/io5";
+import { useEffect, useState } from "react";
+import api from "../../api/axios";
+import { IoDocumentTextOutline, IoEyeOutline, IoSendOutline, IoCloudUploadOutline, IoAddOutline, IoEllipseSharp } from "react-icons/io5";
+import UploadResearchModal from "../../components/Student/UploadResearchModal";
 
 export default function Dashboard() {
-  const stats = {
-    uploadedPapers: 2,
-    citations: 7,
-    accessRequests: 3
-  };
+  const [stats, setStats] = useState({
+    uploadedPapers: 0,
+    citations: 0,
+    accessRequests: 0
+  });
 
-  const submissions = {
-    pendingReview: 1,
-    needsRevision: 1,
-    approved: 3,
-    rejected: 1
-  };
+  const [submissions, setSubmissions] = useState({
+    pendingReview: 0,
+    needsRevision: 0,
+    approved: 0,
+    rejected: 0
+  });
 
-  const accessRequests = [
-    {
-      id: 1,
-      title: "Development of a Mobile Learning Platform for Remote Education",
-      subject: "Psychology",
-      requestedDate: "2/1/2026",
-      status: "Pending"
-    },
-    {
-      id: 2,
-      title: "Development of a Mobile Learning Platform for Remote Education",
-      subject: "Psychology",
-      requestedDate: "2/1/2026",
-      status: "Pending"
-    },
-    {
-      id: 3,
-      title: "Development of a Mobile Learning Platform for Remote Education",
-      subject: "Psychology",
-      requestedDate: "2/1/2026",
-      status: "Pending"
+  const [accessRequests, setAccessRequests] = useState([]);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+
+  const fetchDashboardData = async () => {
+    try {
+      const summaryRes = await api.get("/student/dashboard");
+      setStats({
+        uploadedPapers: summaryRes.data.uploads || 0,
+        citations: summaryRes.data.citations || 0,
+        accessRequests: summaryRes.data.requests || 0
+      });
+
+      const submissionsRes = await api.get("/student/submissions-status");
+      setSubmissions({
+        pendingReview: submissionsRes.data.pendingReview || 0,
+        needsRevision: submissionsRes.data.needsRevision || 0,
+        approved: submissionsRes.data.approved || 0,
+        rejected: submissionsRes.data.rejected || 0
+      });
+
+      const requestsRes = await api.get("/student/access-requests");
+      const formattedRequests = requestsRes.data.map((request, index) => ({
+        id: request.id || index + 1,
+        title: request.title || "Untitled Research",
+        subject: request.subject || "N/A",
+        requestedDate: request.requestedDate || "2/1/2026",
+        status: request.status || "Pending"
+      }));
+      setAccessRequests(formattedRequests);
+    } catch (err) {
+      console.error("Dashboard load failed:", err.response?.data || err.message);
     }
-  ];
+  };
+
+useEffect(() => {
+  const loadDashboard = async () => {
+    try {
+      const [summaryRes, submissionsRes, requestsRes] = await Promise.all([
+        api.get("/student/dashboard"),
+        api.get("/student/submissions-status"),
+        api.get("/student/access-requests")
+      ]);
+
+      setStats({
+        uploadedPapers: summaryRes.data.uploads || 0,
+        citations: summaryRes.data.citations || 0,
+        accessRequests: summaryRes.data.requests || 0
+      });
+
+      setSubmissions({
+        pendingReview: submissionsRes.data.pendingReview || 0,
+        needsRevision: submissionsRes.data.needsRevision || 0,
+        approved: submissionsRes.data.approved || 0,
+        rejected: submissionsRes.data.rejected || 0
+      });
+
+      const formattedRequests = requestsRes.data.map((request, index) => ({
+        id: request.id || index + 1,
+        title: request.title || "Untitled Research",
+        subject: request.subject || "N/A",
+        requestedDate: request.requestedDate || "2/1/2026",
+        status: request.status || "Pending"
+      }));
+
+      setAccessRequests(formattedRequests);
+    } catch (err) {
+      console.error("Dashboard load failed:", err.response?.data || err.message);
+    }
+  };
+
+  loadDashboard();
+}, []);
 
   return (
     <>
@@ -45,9 +97,7 @@ export default function Dashboard() {
         {/* Uploaded Papers */}
         <div className="bg-white rounded-xl p-4 shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-              <IoDocumentTextOutline className="w-10 h-10 text-blue-600" />
-            </div>
+            <IoDocumentTextOutline className="w-10 h-10 text-blue-600" />
             <span className="text-4xl font-bold">{stats.uploadedPapers}</span>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">Uploaded Papers</h3>
@@ -59,9 +109,7 @@ export default function Dashboard() {
         {/* Citations */}
         <div className="bg-white rounded-xl p-4 shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-              <IoEyeOutline className="w-10 h-10 text-purple-600" />
-            </div>
+            <IoEyeOutline className="w-10 h-10 text-purple-600" />
             <span className="text-4xl font-bold">{stats.citations}</span>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">Citations</h3>
@@ -70,12 +118,10 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Access Request */}
+        {/* Access Requests */}
         <div className="bg-white rounded-xl p-4 shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-              <IoSendOutline className="w-10 h-10 text-green-600" />
-            </div>
+            <IoSendOutline className="w-10 h-10 text-green-600" />
             <span className="text-4xl font-bold">{stats.accessRequests}</span>
           </div>
           <h3 className="text-sm font-medium text-gray-600 mb-1">Access Request</h3>
@@ -85,73 +131,58 @@ export default function Dashboard() {
         </div>
 
         {/* Upload Research */}
-        <div className="bg-gradient-to-r from-[#134F4F] to-[#1F606B] rounded-xl p-4 shadow-md cursor-pointer hover:bg-teal-700 transition-colors">
+        <button
+          onClick={() => setUploadModalOpen(true)}
+          className="w-full text-left bg-gradient-to-r from-[#134F4F] to-[#1F606B] rounded-xl p-4 shadow-md hover:opacity-90 transition-all duration-200"
+        >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-              <IoCloudUploadOutline className="w-10 h-10 text-white" />
-            </div>
+            <IoCloudUploadOutline className="w-10 h-10 text-white" />
             <IoAddOutline className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-sm font-medium text-white mb-1">Upload Research</h3>
-          <button className="text-xs text-white font-medium flex items-center gap-1">
-            Add new paper →
-          </button>
-        </div>
+          <span className="text-xs text-white font-medium flex items-center gap-1">Add new paper →</span>
+        </button>
       </div>
 
+      {/* Upload Modal — now a separate component */}
+      <UploadResearchModal
+        isOpen={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        onSubmitSuccess={fetchDashboardData}
+      />
+
+      {/* Submissions & Access Requests */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mx-4">
-        {/* My Submissions - Donut Chart */}
+        {/* My Submissions Donut Chart */}
         <div className="bg-white rounded-xl p-6 shadow-md">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">My Submissions</h2>
-          
           <div className="flex items-center justify-center gap-8">
-            {/* Donut Chart */}
             <div className="relative w-64 h-64">
               <svg viewBox="0 0 200 200" className="transform -rotate-90">
-                {/* Green - Approved (3) - 50% */}
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="70"
-                  fill="none"
-                  stroke="#22C55E"
-                  strokeWidth="40"
-                  strokeDasharray="220 440"
-                  strokeDashoffset="0"
-                />
-                {/* Yellow - Needs Revision (1) - 16.67% */}
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="70"
-                  fill="none"
-                  stroke="#FCD34D"
-                  strokeWidth="40"
-                  strokeDasharray="73.33 440"
-                  strokeDashoffset="-220"
-                />
-                {/* Orange - Pending Review (1) - 16.67% */}
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="70"
-                  fill="none"
-                  stroke="#FB923C"
-                  strokeWidth="40"
-                  strokeDasharray="73.33 440"
-                  strokeDashoffset="-293.33"
-                />
-                {/* Red - Rejected (1) - 16.67% */}
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="70"
-                  fill="none"
-                  stroke="#EF4444"
-                  strokeWidth="40"
-                  strokeDasharray="73.34 440"
-                  strokeDashoffset="-366.66"
-                />
+                {(() => {
+                  const total = submissions.pendingReview + submissions.needsRevision + 
+                                submissions.approved + submissions.rejected;
+                  const circumference = 440;
+
+                  const approvedDash = total ? (submissions.approved / total) * circumference : 0;
+                  const revisionDash = total ? (submissions.needsRevision / total) * circumference : 0;
+                  const pendingDash = total ? (submissions.pendingReview / total) * circumference : 0;
+                  const rejectedDash = total ? (submissions.rejected / total) * circumference : 0;
+
+                  let approvedOffset = 0;
+                  let revisionOffset = -approvedDash;
+                  let pendingOffset = revisionOffset - revisionDash;
+                  let rejectedOffset = pendingOffset - pendingDash;
+
+                  return (
+                    <>
+                      {submissions.approved > 0 && <circle cx="100" cy="100" r="70" fill="none" stroke="#22C55E" strokeWidth="40" strokeDasharray={`${approvedDash} ${circumference}`} strokeDashoffset={approvedOffset} />}
+                      {submissions.needsRevision > 0 && <circle cx="100" cy="100" r="70" fill="none" stroke="#FCD34D" strokeWidth="40" strokeDasharray={`${revisionDash} ${circumference}`} strokeDashoffset={revisionOffset} />}
+                      {submissions.pendingReview > 0 && <circle cx="100" cy="100" r="70" fill="none" stroke="#FB923C" strokeWidth="40" strokeDasharray={`${pendingDash} ${circumference}`} strokeDashoffset={pendingOffset} />}
+                      {submissions.rejected > 0 && <circle cx="100" cy="100" r="70" fill="none" stroke="#EF4444" strokeWidth="40" strokeDasharray={`${rejectedDash} ${circumference}`} strokeDashoffset={rejectedOffset} />}
+                    </>
+                  );
+                })()}
               </svg>
             </div>
 
@@ -184,25 +215,23 @@ export default function Dashboard() {
         {/* Access Request List */}
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Access Request</h2>
-          
           <div className="space-y-3">
-            {accessRequests.map((request) => (
-              <div 
-                key={request.id}
-                className="p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-900 flex-1 pr-4">
-                    {request.title}
-                  </h3>
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full whitespace-nowrap">
-                    {request.status}
-                  </span>
+            {accessRequests.length > 0 ? (
+              accessRequests.map((request) => (
+                <div key={request.id} className="p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-sm font-medium text-gray-900 flex-1 pr-4">{request.title}</h3>
+                    <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full whitespace-nowrap">
+                      {request.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-1">{request.subject}</p>
+                  <p className="text-xs text-gray-500">Requested: {request.requestedDate}</p>
                 </div>
-                <p className="text-xs text-gray-600 mb-1">{request.subject}</p>
-                <p className="text-xs text-gray-500">Requested: {request.requestedDate}</p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-4">No access requests found</p>
+            )}
           </div>
         </div>
       </div>
