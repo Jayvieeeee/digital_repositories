@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
+import { FiChevronDown } from 'react-icons/fi';
 import AuthLayout from '../../Layout/AuthLayout';
 import api from '../../api/axios';
 
@@ -16,18 +17,26 @@ export default function StudentRegistration() {
 
   const [file, setFile] = useState(null);
   const [schools, setSchools] = useState([]);
-  const [loadingSchools, setLoadingSchools] = useState(true);
+  const [isFocused, setIsFocused] = useState(false);
 
-  // 🔹 Fetch schools from database
   useEffect(() => {
     const fetchSchools = async () => {
       try {
+        const cachedSchools = localStorage.getItem("schools");
+
+        // ✅ If schools exist in cache, load instantly
+        if (cachedSchools) {
+          setSchools(JSON.parse(cachedSchools));
+        }
+
+        // ✅ Always fetch fresh data in background
         const response = await api.get('/schools');
+
         setSchools(response.data);
+        localStorage.setItem("schools", JSON.stringify(response.data));
+
       } catch (error) {
         console.error("Failed to load schools:", error);
-      } finally {
-        setLoadingSchools(false);
       }
     };
 
@@ -131,23 +140,36 @@ export default function StudentRegistration() {
                 School Information
               </h2>
 
-              <select
-                name="university"
-                value={formData.university}
-                onChange={handleInputChange}
-                disabled={loadingSchools}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">
-                  {loadingSchools ? "Loading universities..." : "Select your University"}
-                </option>
-
-                {schools.map((school) => (
-                  <option key={school.school_id} value={school.school_id}>
-                    {school.school_name}
+              {/* Custom Select with Animated Arrow */}
+              <div className="relative">
+                <select
+                  name="university"
+                  value={formData.university}
+                  onChange={handleInputChange}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  className="w-full px-4 py-3 pr-10 bg-gray-50 border border-gray-200 
+                             rounded-lg focus:ring-2 focus:ring-[#1A6C6C] 
+                             focus:border-transparent transition-all appearance-none"
+                >
+                  <option value="">
+                    Select your University
                   </option>
-                ))}
-              </select>
+
+                  {schools.map((school) => (
+                    <option key={school.school_id} value={school.school_id}>
+                      {school.school_name}
+                    </option>
+                  ))}
+                </select>
+
+                <FiChevronDown
+                  size={18}
+                  className={`absolute right-3 top-[60%] -translate-y-1/2 
+                             text-gray-500 transition-transform duration-300 
+                             ${isFocused ? "rotate-180 text-[#1A6C6C]" : ""}`}
+                />
+              </div>
 
               <p className="text-xs text-slate-500 mt-2">
                 Can't find your school? Ask your institution to register first.
@@ -235,7 +257,7 @@ export default function StudentRegistration() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3.5 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md"
+              className="w-full bg-[#1A6C6C] text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md"
             >
               Register
             </button>
