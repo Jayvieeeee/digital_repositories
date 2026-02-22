@@ -11,15 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('academic_years', function (Blueprint $table) {
-            $table->id('academic_year_id');
-            $table->year('year_start');
-            $table->year('year_end');
+        Schema::create('programs', function (Blueprint $table) {
+            $table->id('program_id');
 
-            $table->boolean('is_active')->default(false);
-            $table->boolean('is_archived')->default(false);
+            $table->unsignedBigInteger('school_id');
 
+            $table->string('program_name');
             $table->timestamps();
+
+            $table->foreign('school_id')
+                ->references('school_id')
+                ->on('schools')
+                ->onDelete('cascade');
         });
     }
 
@@ -28,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('academic_years');
+        Schema::dropIfExists('programs');
     }
 };

@@ -98,6 +98,7 @@ class AuthController extends Controller
             'email'      => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'role'       => 'required|string',
+            'school_id'  => 'required|exists:schools,school_id',
         ]);
 
         $user = User::create([
@@ -106,6 +107,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'school_id' => $request->school_id,
             'status' => 'pending', // Default status
         ]);
 

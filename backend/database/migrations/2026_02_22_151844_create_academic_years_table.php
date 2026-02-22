@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sections', function (Blueprint $table) {
-            $table->id('section_id');
+        Schema::create('academic_years', function (Blueprint $table) {
+            $table->id('academic_year_id');
 
-            $table->foreignId('school_id')->constrained('schools', 'school_id');
+            $table->string('year_start');
+            $table->string('year_end');
 
-            $table->string('section_name');
+            $table->boolean('is_active')->default(false);
+            $table->boolean('is_archived')->default(false);
 
             $table->timestamps();
         });
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sections');
+        Schema::dropIfExists('academic_years');
     }
 };

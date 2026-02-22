@@ -14,13 +14,17 @@ return new class extends Migration
         Schema::create('paper_access_logs', function (Blueprint $table) {
             $table->id('log_id');
 
-            $table->foreignId('paper_id')->constrained('research_papers', 'paper_id')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users', 'user_id')->cascadeOnDelete();
+            $table->unsignedBigInteger('paper_id');
+            $table->unsignedBigInteger('user_id');
 
-            $table->string('access_type');
-            $table->string('access_source')->nullable();
+            $table->string('access_type');   
+            $table->string('access_source'); 
 
             $table->timestamps();
+
+            $table->foreign('paper_id')->references('paper_id')->on('research_papers')->onDelete('cascade');
+
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
         });
     }
 

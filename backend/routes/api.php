@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\SchoolController;
+use App\Http\Controllers\ResearchPaperController;
 
 /* ================= AUTH ================= */
 
@@ -35,7 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/papers', [StudentController::class, 'browse']);
         Route::get('/papers/{id}', [StudentController::class, 'show']);
 
-        Route::post('/upload', [StudentController::class, 'upload']);
+         Route::post('/research/upload', [ResearchPaperController::class, 'store']);
 
         Route::post('/request/{id}', [StudentController::class, 'requestAccess']);
         Route::get('/requests', [StudentController::class, 'myRequests']);

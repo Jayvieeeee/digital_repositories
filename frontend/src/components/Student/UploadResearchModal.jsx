@@ -1,12 +1,13 @@
 import { useState, useRef } from "react";
 import { IoCloseOutline, IoCloudUploadOutline } from "react-icons/io5";
+import api from "../../api/axios";
 
 export default function UploadResearchModal({ isOpen, onClose, onSubmitSuccess }) {
   const [form, setForm] = useState({
     title: "",
     abstract: "",
     keywords: "",
-    adviser: "",
+    document_type: "",
     file: null,
   });
   const [uploading, setUploading] = useState(false);
@@ -28,28 +29,33 @@ export default function UploadResearchModal({ isOpen, onClose, onSubmitSuccess }
   };
 
   const handleSubmit = async () => {
-    if (!form.title || !form.abstract || !form.keywords || !form.file) {
-      return alert("Please fill in all required fields and attach a file.");
+    if (!form.title || !form.abstract || !form.keywords || !form.file || !form.document_type) {
+      return alert("Please fill in all required fields.");
     }
 
     const formData = new FormData();
     formData.append("title", form.title);
     formData.append("abstract", form.abstract);
     formData.append("keywords", form.keywords);
-    formData.append("adviser", form.adviser);
     formData.append("file", form.file);
-
+    formData.append("document_type", form.document_type);
+    formData.append("adviser_id", 1); 
+    formData.append("academic_year_id", 1); 
     setUploading(true);
+
     try {
-      // Replace with your actual API call
-      // await api.post("/student/upload", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      await api.post("/research/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
       alert("Research submitted successfully!");
-      setForm({ title: "", abstract: "", keywords: "", adviser: "", file: null });
+      setForm({ title: "", abstract: "", keywords: "", file: null });
       onSubmitSuccess?.();
       onClose();
+
     } catch (err) {
-      console.error("Upload failed:", err);
-      alert("Upload failed. Please try again.");
+      console.error(err.response?.data);
+      alert("Upload failed.");
     } finally {
       setUploading(false);
     }
@@ -116,19 +122,26 @@ export default function UploadResearchModal({ isOpen, onClose, onSubmitSuccess }
             />
           </div>
 
-          {/* Adviser */}
+          {/* Document Type */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Adviser
-            </label>
-            <input
-              type="text"
-              name="adviser"
-              placeholder="Mr. Jayson Narez"
-              value={form.adviser}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            />
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Document Type <span className="text-red-500">*</span>
+              </label>
+
+              <select
+                name="document_type"
+                value={form.document_type}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              >
+                <option value="">Select Document Type</option>
+                <option value="thesis">Thesis</option>
+                <option value="capstone">Capstone</option>
+                <option value="journal">Journal</option>
+                <option value="article">Article</option>
+              </select>
+            </div>
           </div>
 
           {/* PDF Upload */}

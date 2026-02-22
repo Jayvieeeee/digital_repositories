@@ -18,13 +18,10 @@ return new class extends Migration
             $table->string('school_type');
             $table->string('contact_number');
             $table->string('email')->unique();
-            $table->string('proof_of_legitimacy');
-
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-
+            $table->string('proof_of_legitimacy')->nullable();
+            $table->string('status')->default('pending');
             $table->timestamps();
-    });
-
+        });
     }
 
     /**

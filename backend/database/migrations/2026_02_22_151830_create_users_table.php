@@ -13,17 +13,22 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id('user_id');
-            $table->foreignId('school_id')->nullable()->constrained('schools', 'school_id')->nullOnDelete();
+
+            $table->unsignedBigInteger('school_id')->nullable();
 
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email')->unique();
             $table->string('password');
-
-            $table->enum('role', ['student', 'adviser', 'school', 'admin']);
-            $table->enum('status', ['pending', 'active', 'inactive'])->default('pending');
+            $table->string('role'); // admin, student, adviser
+            $table->string('status')->default('active');
 
             $table->timestamps();
+
+            $table->foreign('school_id')
+                ->references('school_id')
+                ->on('schools')
+                ->onDelete('cascade');
         });
     }
 

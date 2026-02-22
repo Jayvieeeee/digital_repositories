@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
-import { FiChevronDown } from 'react-icons/fi';
+import { FiChevronDown, FiEye, FiEyeOff } from 'react-icons/fi';
 import AuthLayout from '../../Layout/AuthLayout';
 import api from '../../api/axios';
 
@@ -19,17 +19,20 @@ export default function StudentRegistration() {
   const [schools, setSchools] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   useEffect(() => {
     const fetchSchools = async () => {
       try {
         const cachedSchools = localStorage.getItem("schools");
 
-        // ✅ If schools exist in cache, load instantly
+        // If schools exist in cache, load instantly
         if (cachedSchools) {
           setSchools(JSON.parse(cachedSchools));
         }
 
-        // ✅ Always fetch fresh data in background
+        // Always fetch fresh data in background
         const response = await api.get('/schools');
 
         setSchools(response.data);
@@ -91,7 +94,7 @@ export default function StudentRegistration() {
 
   return (
     <AuthLayout>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-xl mx-auto">
 
         <div className="bg-white rounded-3xl shadow-lg p-10">
 
@@ -234,31 +237,50 @@ export default function StudentRegistration() {
                   placeholder="Email Address"
                 />
 
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Password"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Password"
+                  />
 
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Confirm Password"
-                />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#1A6C6C]"
+                  >
+                    {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                  </button>
+                </div>  
+
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Confirm Password"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#1A6C6C]"
+                  >
+                    {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Submit */}
             <button
               type="submit"
-              className="w-full bg-[#1A6C6C] text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md"
-            >
+              className="w-full bg-[#1A6C6C] text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm hover:shadow-md">
               Register
             </button>
 

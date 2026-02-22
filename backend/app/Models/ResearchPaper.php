@@ -16,10 +16,9 @@ class ResearchPaper extends Model
         'title',
         'abstract',
         'document_type',
-        'similarity_percentage',
         'pdf_path',
+        'similarity_percentage',
         'status',
-        'approved_at'
     ];
 
     /* relations */
