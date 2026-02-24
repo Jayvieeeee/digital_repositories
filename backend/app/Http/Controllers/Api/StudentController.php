@@ -8,13 +8,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\ResearchPaper;
 use App\Models\AccessRequest;
+use Illuminate\Support\Facades\Hash;
 
 class StudentController extends Controller
 {
 
-    /* ======================================
+    /*
         DASHBOARD
-    ====================================== */
+    */
     public function dashboard()
     {
         $user = Auth::user();
@@ -85,9 +86,9 @@ class StudentController extends Controller
     }
 
 
-    /* ======================================
+    /* 
         BROWSE + FILTER
-    ====================================== */
+     */
     public function browse(Request $request)
     {
         $query = ResearchPaper::with('school');
@@ -110,9 +111,9 @@ class StudentController extends Controller
     }
 
 
-    /* ======================================
+    /* 
         RESEARCH DETAIL + VISIBILITY
-    ====================================== */
+    */
     public function show($id)
     {
         $student = Auth::user();
@@ -157,10 +158,9 @@ class StudentController extends Controller
         return response()->json(['message' => 'Request sent']);
     }
 
-
-    /* ======================================
+    /* 
         MY REQUESTS
-    ====================================== */
+   */
     public function myRequests()
     {
         $student = Auth::user();
@@ -172,4 +172,57 @@ class StudentController extends Controller
 
         return response()->json($requests);
     }
+
+
+    public function profile(Request $request)
+    {
+        $user = $request->user();
+        $student = $user->student;
+
+        return response()->json([
+            'first_name'  => $user->first_name,
+            'last_name'   => $user->last_name,
+            'email'       => $user->email,
+            'year_level'  => $student->year_level ?? null,
+            'school_name' => $user->school->school_name ?? null,
+            'program_id'  => $student->program_id ?? null,
+            'student_no'  => $student->uploaded_student_id ?? null,
+        ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        $student = $user->student;
+
+        $user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+        ]);
+
+        $student->update([
+            'uploaded_student_id' => $request->student_no,
+            'year_level'          => $request->year_level,
+            'program_id'          => $request->program_id,
+        ]);
+
+        return response()->json(['message' => 'Updated successfully']);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Wrong password'], 400);
+        }
+
+        $user->update([
+            'password' => bcrypt($request->new_password),
+        ]);
+
+        return response()->json(['message' => 'Password updated']);
+    }
+
 }

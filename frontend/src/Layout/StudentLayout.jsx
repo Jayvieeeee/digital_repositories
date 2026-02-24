@@ -48,10 +48,7 @@ export default function StudentLayout() {
             {/* Example: Student info */}
             <span className="px-3 py-1 text-sm bg-gray-100 rounded-full text-gray-800">
               {user.program || "Computer Science - 4th Year"}
-            </span>
-            <span className="px-3 py-1 text-sm bg-gray-100 rounded-full text-gray-800">
-              ID: {user.student_id || "2023-2432"}
-            </span>
+            </span> 
           </div>
         </div>
 

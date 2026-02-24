@@ -61,6 +61,24 @@ class User extends Authenticatable
         return $this->belongsTo(School::class, 'school_id');
     }
 
+    public function student()
+    {
+        return $this->hasOne(Student::class, 'user_id', 'user_id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function ($user) {
+            if ($user->role === 'student') {
+                $user->student()->update([
+                    'status' => $user->status
+                ]);
+            }
+        });
+    }
+
     // Send mail when account is approved
     protected static function booted()
     {
@@ -72,6 +90,5 @@ class User extends Authenticatable
 
         });
     }
-
 
 }

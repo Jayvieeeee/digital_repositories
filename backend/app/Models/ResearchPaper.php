@@ -8,17 +8,19 @@ class ResearchPaper extends Model
 {
     protected $primaryKey = 'paper_id';
 
-    protected $fillable = [
+     protected $fillable = [
+        'reference_number',
         'school_id',
         'student_id',
-        'adviser_id',
+        'program_id',
         'academic_year_id',
         'title',
         'abstract',
         'document_type',
-        'pdf_path',
         'similarity_percentage',
+        'pdf_path',
         'status',
+        'approved_at',
     ];
 
     /* relations */

@@ -21,8 +21,6 @@ const mockResults = [
     date: "January 28, 2026",
     score: 66,
     citations: 0,
-    adviser: "Jessie Alamil",
-    status: "Unpublished",
     tags: ["Machine Learning", "Healthcare", "AI"],
     abstract:
       "This research explores the integration of machine learning algorithms in medical diagnostics, focusing on early disease detection and pattern recognition in patient data. The study demonstrates significant improvements in diagnostic accuracy and efficiency across multiple healthcare scenarios.",
@@ -35,8 +33,6 @@ const mockResults = [
     date: "January 28, 2026",
     score: 66,
     citations: 0,
-    adviser: "Jessie Alamil",
-    status: "Published",
     tags: ["Machine Learning", "Healthcare", "AI"],
     abstract:
       "This research explores the integration of machine learning algorithms in medical diagnostics, focusing on early disease detection and pattern recognition in patient data. The study demonstrates significant improvements in diagnostic accuracy and efficiency across multiple healthcare scenarios.",
@@ -49,20 +45,7 @@ const tagColors = {
   AI: "bg-purple-100 text-purple-700",
 };
 
-function StatusBadge({ status }) {
-  if (status === "Published") {
-    return (
-      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700 border border-green-200 whitespace-nowrap">
-        Published
-      </span>
-    );
-  }
-  return (
-    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 whitespace-nowrap">
-      Unpublished
-    </span>
-  );
-}
+
 
 function ResearchCard({ item }) {
   return (
@@ -72,7 +55,6 @@ function ResearchCard({ item }) {
         <h3 className="text-base font-semibold text-gray-900 leading-snug flex-1">
           {item.title}
         </h3>
-        <StatusBadge status={item.status} />
       </div>
 
       {/* Meta info */}
@@ -97,12 +79,6 @@ function ResearchCard({ item }) {
         </span>
       </div>
 
-      {/* Adviser */}
-      <p className="text-sm text-gray-500 mb-3">
-        Research Adviser:{" "}
-        <span className="font-medium text-gray-700">{item.adviser}</span>
-      </p>
-
       {/* Abstract */}
       <p className="text-sm text-gray-600 leading-relaxed mb-4">{item.abstract}</p>
 
@@ -126,7 +102,7 @@ function ResearchCard({ item }) {
             <BsFileText className="w-4 h-4" />
             View Abstract
           </button>
-          {item.status === "Published" ? (
+          {item.isPrivate ? (
             <button className="flex items-center gap-1.5 text-sm text-white bg-gray-800 px-3 py-1.5 rounded-lg hover:bg-gray-900 transition-colors">
               <FiLock className="w-4 h-4" />
               Request Access

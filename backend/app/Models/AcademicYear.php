@@ -16,22 +16,27 @@ class AcademicYear extends Model
     protected $fillable = [
         'year_start',
         'year_end',
-        'is_current'
+        'is_active',
+        'is_archived'
     ];
 
     protected $casts = [
         'year_start' => 'integer',
         'year_end' => 'integer',
-        'is_current' => 'boolean',
+        'is_active' => 'boolean',
+        'is_archived' => 'boolean',
     ];
 
+    public static function active()
+    {
+        return self::where('is_active', true)
+                ->where('is_archived', false)
+                ->first();
+    }
+    
     public function accessRequests()
     {
         return $this->hasMany(AccessRequest::class, 'academic_year_id', 'academic_year_id');
     }
 
-    public function adviserSections()
-    {
-        return $this->hasMany(AdviserSection::class, 'academic_year_id', 'academic_year_id');
-    }
 }

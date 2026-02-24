@@ -39,12 +39,10 @@ export default function UploadResearchModal({ isOpen, onClose, onSubmitSuccess }
     formData.append("keywords", form.keywords);
     formData.append("file", form.file);
     formData.append("document_type", form.document_type);
-    formData.append("adviser_id", 1); 
-    formData.append("academic_year_id", 1); 
     setUploading(true);
 
     try {
-      await api.post("/research/upload", formData, {
+      await api.post("student/research/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 

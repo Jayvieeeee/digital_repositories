@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Models\Student;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -110,6 +111,11 @@ class AuthController extends Controller
             'school_id' => $request->school_id,
             'status' => 'pending', // Default status
         ]);
+
+        Student::create([
+        'user_id'    => $user->user_id,
+        'status' => 'pending', // Default status
+    ]);
 
         return response()->json([
             'token' => $user->createToken('api-token')->plainTextToken,

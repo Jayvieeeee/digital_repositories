@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Controllers\ResearchPaperController;
+use App\Http\Controllers\Api\ProgramController;
 
 /* ================= AUTH ================= */
 
@@ -24,6 +25,7 @@ Route::get('/schools', [SchoolController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/programs', [ProgramController::class, 'index']);
 
     /* ===== STUDENT ===== */
 
@@ -40,6 +42,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/request/{id}', [StudentController::class, 'requestAccess']);
         Route::get('/requests', [StudentController::class, 'myRequests']);
+
+        Route::get('/profile', [StudentController::class, 'profile']);
+        Route::put('/update-profile', [StudentController::class, 'updateProfile']);
+        Route::put('/update-password', [StudentController::class, 'updatePassword']);
     });
 
 

@@ -29,14 +29,6 @@ class School extends Model
     }
 
     /**
-     * Get all sections under this school
-     */
-    public function sections()
-    {
-        return $this->hasMany(Section::class, 'school_id', 'school_id');
-    }
-
-    /**
      * Get all research papers from this school
      */
     public function researchPapers()
@@ -51,28 +43,11 @@ class School extends Model
     {
         return $this->hasManyThrough(
             Student::class,
-            Section::class,
             'school_id', // Foreign key on sections table
-            'section_id', // Foreign key on students table
             'school_id', // Local key on schools table
-            'section_id' // Local key on sections table
         );
     }
 
-    /**
-     * Get all advisers assigned to this school
-     */
-    public function advisers()
-    {
-        return $this->hasManyThrough(
-            Adviser::class,
-            User::class,
-            'school_id', // Foreign key on users table
-            'user_id', // Foreign key on advisers table
-            'school_id', // Local key on schools table
-            'user_id' // Local key on users table
-        )->where('role', 'adviser');
-    }
 
     /**
      * Get count of pending papers from this school

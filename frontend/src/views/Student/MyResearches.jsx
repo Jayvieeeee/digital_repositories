@@ -7,53 +7,34 @@ const mockResearches = [
     id: 1,
     status: "Approved",
     type: "Thesis",
-    publishStatus: "Unpublished",
     title: "Machine Learning Approaches for Predictive Healthcare Analytics",
     author: "Santos, Maria",
     institution: "University School",
     date: "January 28, 2026",
     score: 66,
     citations: 0,
-    adviser: "Jessie Alamil",
   },
   {
     id: 2,
     status: "Rejected",
     type: "Capstone",
-    publishStatus: null,
     title: "Machine Learning Approaches for Predictive Healthcare Analytics",
     author: "Santos, Maria",
     institution: "University School",
     date: "January 28, 2026",
     score: 66,
     citations: 0,
-    adviser: "Jessie Alamil",
   },
   {
     id: 3,
     status: "Pending",
     type: "Capstone",
-    publishStatus: null,
     title: "Machine Learning Approaches for Predictive Healthcare Analytics",
     author: "Santos, Maria",
     institution: "University School",
     date: "January 28, 2026",
     score: 66,
     citations: 0,
-    adviser: "Jessie Alamil",
-  },
-  {
-    id: 4,
-    status: "Revision",
-    type: "Capstone",
-    publishStatus: null,
-    title: "Machine Learning Approaches for Predictive Healthcare Analytics",
-    author: "Santos, Maria",
-    institution: "University School",
-    date: "January 28, 2026",
-    score: 66,
-    citations: 0,
-    adviser: "Jessie Alamil",
   },
 ];
 
@@ -61,13 +42,12 @@ const statusStyles = {
   Approved: "bg-green-100 text-green-700",
   Rejected: "bg-red-100 text-red-700",
   Pending: "bg-yellow-100 text-yellow-700",
-  Revision: "bg-orange-100 text-orange-700",
 };
 
-const tabs = ["All", "Pending", "Revision", "Approved", "Rejected"];
+const tabs = ["All", "Pending", "Approved", "Rejected"];
 
 function ResearchCard({ item }) {
-  const canEdit = item.status === "Pending" || item.status === "Revision";
+  const canEdit = item.status === "Pending";
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
@@ -116,24 +96,19 @@ function ResearchCard({ item }) {
       </div>
 
       {/* Adviser + Actions */}
-      <div className="flex items-center justify-between flex-wrap gap-3 mt-1">
-        <p className="text-sm text-gray-500">
-          Research Adviser:{" "}
-          <span className="font-medium text-gray-700">{item.adviser}</span>
-        </p>
+    <div className="flex justify-end items-center gap-2 mt-1">
+      <button className="text-sm text-white bg-[#1A6C6C] px-4 py-1.5 rounded-lg hover:bg-teal-700 transition-colors font-medium">
+        View Details
+      </button>
 
-        <div className="flex items-center gap-2">
-          <button className="text-sm text-white bg-[#1A6C6C] px-4 py-1.5 rounded-lg hover:bg-teal-700 transition-colors font-medium">
-            View Details
-          </button>
-          {canEdit && (
-            <button className="flex items-center gap-1.5 text-sm text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors font-medium">
-              <FiEdit2 className="w-3.5 h-3.5" />
-              Edit
-            </button>
-          )}
-        </div>
-      </div>
+      {canEdit && (
+        <button className="flex items-center gap-1.5 text-sm text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+          <FiEdit2 className="w-3.5 h-3.5" />
+          Edit
+        </button>
+      )}
+    </div>
+
     </div>
   );
 }
