@@ -54,8 +54,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/papers', [StudentController::class, 'browse']);
         Route::get('/papers/{id}', [StudentController::class, 'show']);
 
-        Route::post('/request/{id}', [StudentController::class, 'requestAccess']);
-        Route::get('/requests', [StudentController::class, 'myRequests']);
+        Route::post('/request-access/{id}', [StudentController::class, 'requestAccess']);
+        Route::get('/my-requests', [StudentController::class, 'myRequests']);
 
         Route::get('/profile', [StudentController::class, 'profile']);
         Route::put('/profile', [StudentController::class, 'updateProfile']);

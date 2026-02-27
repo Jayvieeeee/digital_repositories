@@ -31,6 +31,11 @@ class ResearchPaper extends Model
         'similarity_percentage' => 'float'
     ];
 
+    public function school()
+    {
+        return $this->belongsTo(School::class, 'school_id');
+    }
+
     public function student()
     {
         return $this->belongsTo(Student::class, 'student_id', 'student_id');
