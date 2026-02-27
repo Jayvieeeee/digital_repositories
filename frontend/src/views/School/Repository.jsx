@@ -6,8 +6,9 @@ import {
   IoEyeOutline,
   IoChevronBackOutline,
   IoChevronForwardOutline,
-  IoCloseOutline,
+  IoChevronDownOutline,
 } from "react-icons/io5";
+import PaperDetailsModal from "../../components/School/ViewPaperDetails";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const STATUS_TABS = [
@@ -26,104 +27,68 @@ function getSimilarityColor(pct = 0) {
   return { dot: "#ef4444", bar: "#ef4444", text: "#dc2626" };
 }
 
-// ─── Helper: safely extract program name from whatever shape the API returns ──
 function getProgramName(program) {
   if (!program) return "—";
   if (typeof program === "string") return program;
-  return (
-    program.program_name ??
-    program.name ??
-    program.title ??
-    "—"
-  );
+  return program.program_name ?? program.name ?? program.title ?? "—";
 }
 
+function formatYearLevel(year) {
+  if (!year || year === "—") return "—";
+  const num = parseInt(year);
+  if (isNaN(num)) return year;
+  const suffix = num === 1 ? "st" : num === 2 ? "nd" : num === 3 ? "rd" : "th";
+  return `${num}${suffix} Year`;
+}
+
+// ─── Status Badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const map = {
-    approved: "bg-green-50 text-green-700 border border-green-200",
-    pending:  "bg-orange-50 text-orange-600 border border-orange-200",
-    rejected: "bg-red-50 text-red-600 border border-red-200",
+    approved: "text-green-600 border-green-400",
+    pending:  "text-orange-400 border-orange-400",
+    rejected: "text-red-500 border-red-400",
+    flagged:  "text-gray-500 border-gray-400",
   };
-  const displayStatus = status
-    ? status.charAt(0).toUpperCase() + status.slice(1)
-    : "—";
+  const key = status?.toLowerCase();
+  const label = key ? key.charAt(0).toUpperCase() + key.slice(1) : "—";
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${map[status?.toLowerCase()] || "bg-gray-100 text-gray-500"}`}>
-      {displayStatus}
+    <span className={`inline-block px-3 py-0.5 rounded-full text-xs font-medium bg-white border whitespace-nowrap ${map[key] || "border-gray-300 text-gray-500"}`}>
+      {label}
     </span>
   );
 }
 
-function SimilarityCell({ similarity = 0, note }) {
+// ─── Similarity Cell ──────────────────────────────────────────────────────────
+function SimilarityCell({ similarity = 0 }) {
   const { dot, bar, text } = getSimilarityColor(similarity);
   return (
-    <div className="flex items-center gap-2 min-w-[140px]">
-      <span style={{ color: dot }} className="text-lg leading-none flex-shrink-0">●</span>
-      <div className="flex-1 bg-gray-100 rounded-full h-1.5 w-16">
+    <div className="flex items-center gap-2">
+      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: dot }} />
+      <div className="w-20 bg-gray-200 rounded-full h-1.5 flex-shrink-0">
         <div
-          className="h-1.5 rounded-full transition-all"
+          className="h-1.5 rounded-full"
           style={{ width: `${Math.min(similarity, 100)}%`, backgroundColor: bar }}
         />
       </div>
-      {note ? (
-        <span className="text-xs text-gray-500 italic whitespace-nowrap">{note}</span>
-      ) : (
-        <span className="text-xs font-bold whitespace-nowrap" style={{ color: text }}>{similarity}%</span>
-      )}
+      <span className="text-sm font-bold whitespace-nowrap" style={{ color: text }}>
+        {similarity}%
+      </span>
     </div>
   );
 }
 
-// ─── PDF Preview Modal Component ──────────────────────────────────────────────
-function PDFPreviewModal({ isOpen, onClose, pdfUrl, paperTitle }) {
-  if (!isOpen) return null;
-
+// ─── Dropdown Select ──────────────────────────────────────────────────────────
+function FilterSelect({ value, onChange, children }) {
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={onClose}
-      />
-      
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800">
-              {paperTitle || "PDF Preview"}
-            </h3>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <IoCloseOutline className="w-6 h-6 text-gray-500" />
-            </button>
-          </div>
-          
-          {/* PDF Viewer */}
-          <div className="flex-1 p-4 min-h-[600px]">
-            <iframe
-              src={pdfUrl}
-              className="w-full h-full rounded-lg border border-gray-200"
-              title="PDF Preview"
-            />
-          </div>
-          
-          {/* Footer with Download Button */}
-          <div className="flex justify-end p-4 border-t border-gray-200">
-            <a
-              href={pdfUrl}
-              download
-              className="flex items-center gap-2 px-4 py-2 bg-[#134F4F] text-white rounded-lg hover:bg-teal-800 transition-colors"
-            >
-              <IoDocumentTextOutline className="w-4 h-4" />
-              Download PDF
-            </a>
-          </div>
-        </div>
-      </div>
+    <div className="relative">
+      <select
+        value={value}
+        onChange={onChange}
+        className="appearance-none text-sm border border-gray-200 rounded-lg pl-3 pr-8 py-2 bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer"
+      >
+        {children}
+      </select>
+      <IoChevronDownOutline className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
     </div>
   );
 }
@@ -140,7 +105,7 @@ export default function LibrarianRepository() {
   const [program, setProgram]       = useState("");
   const [yearLevel, setYearLevel]   = useState("");
   const [schoolYear, setSchoolYear] = useState("");
-  const [activeTab, setActiveTab]   = useState("pending"); // Default to pending
+  const [activeTab, setActiveTab]   = useState("all");
 
   const [pagination, setPagination] = useState({
     current_page: 1,
@@ -148,13 +113,9 @@ export default function LibrarianRepository() {
     total: 0,
   });
 
-  // PDF Preview Modal State
-  const [previewModal, setPreviewModal] = useState({
-    isOpen: false,
-    pdfUrl: "",
-    paperTitle: "",
-    paperId: null
-  });
+  const [detailsModal, setDetailsModal] = useState({ isOpen: false, paper: null });
+  const handleViewDetails = (paper) => setDetailsModal({ isOpen: true, paper });
+  const handleCloseModal  = ()       => setDetailsModal({ isOpen: false, paper: null });
 
   // ─── Fetch Papers ──────────────────────────────────────────────────────────
   const fetchPapers = useCallback(async () => {
@@ -171,10 +132,7 @@ export default function LibrarianRepository() {
           per_page:    ITEMS_PER_PAGE,
         },
       });
-
-      console.log("API Response:", res.data); 
-
-      const paginator = res.data.data;
+      const paginator     = res.data.data;
       const fetchedPapers = paginator.data ?? [];
       setPapers(fetchedPapers);
       setPagination({
@@ -182,17 +140,13 @@ export default function LibrarianRepository() {
         last_page:    paginator.last_page,
         total:        paginator.total,
       });
-
-      // Derive unique school years from returned data on first load
       if (schoolYears.length === 0 && fetchedPapers.length > 0) {
         const years = [...new Set(fetchedPapers.map(p => p.school_year).filter(Boolean))].sort().reverse();
         setSchoolYears(years);
         if (!schoolYear && years.length > 0) setSchoolYear(years[0]);
       }
-
       setError(null);
     } catch (err) {
-      console.error("Fetch error:", err);
       setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
@@ -201,26 +155,18 @@ export default function LibrarianRepository() {
 
   useEffect(() => { fetchPapers(); }, [fetchPapers]);
 
-  // ─── Fetch pending badge count ─────────────────────────────────────────────
   useEffect(() => {
-    api.get(`/research-papers`, {
-      params: { status: "pending", per_page: 1, page: 1 },
-    }).then(res => {
-      setPendingTotal(res.data.data?.total ?? 0);
-    }).catch(() => {});
+    api.get(`/research-papers`, { params: { status: "pending", per_page: 1, page: 1 } })
+      .then(res => setPendingTotal(res.data.data?.total ?? 0))
+      .catch(() => {});
   }, []);
 
   // ─── Status Update ─────────────────────────────────────────────────────────
   const handleStatusUpdate = async (id, status) => {
-    if (!id) {
-      console.error("Cannot update status: ID is undefined");
-      return;
-    }
-    
+    if (!id) return;
     try {
       await api.patch(`/research-papers/${id}/status`, { status });
       fetchPapers();
-      // Refresh pending badge
       api.get(`/research-papers`, { params: { status: "pending", per_page: 1, page: 1 } })
         .then(res => setPendingTotal(res.data.data?.total ?? 0))
         .catch(() => {});
@@ -229,68 +175,11 @@ export default function LibrarianRepository() {
     }
   };
 
-  // ─── Handle View PDF ───────────────────────────────────────────────────────
-  const handleViewPDF = (paper) => {
-    // Get the correct ID (paper_id from your model)
-    const paperId = paper.paper_id || paper.id;
-    
-    console.log("Paper object:", paper);
-    console.log("Using paperId:", paperId);
-    
-    if (!paperId) {
-      console.error("No paper ID found in:", paper);
-      alert("Error: Paper ID not found. Check console for details.");
-      return;
-    }
-    
-    // When viewing, update status to "approved" if it's still pending
-    if (paper.status?.toLowerCase() === "pending") {
-      handleStatusUpdate(paperId, "approved");
-    }
-    
-    // Open PDF preview modal
-    setPreviewModal({
-      isOpen: true,
-      pdfUrl: `http://127.0.0.1:8000/api/research-papers/${paperId}/download`,
-      paperTitle: paper.title,
-      paperId: paperId
-    });
-  };
-
-  // ─── Close PDF Modal ───────────────────────────────────────────────────────
-  const handleCloseModal = () => {
-    setPreviewModal({
-      isOpen: false,
-      pdfUrl: "",
-      paperTitle: "",
-      paperId: null
-    });
-  };
-
-  const handleTabChange = (val) => {
-    setActiveTab(val);
-    setPagination(p => ({ ...p, current_page: 1 }));
-  };
-
-  const handleSearch  = (e) => { 
-    setSearch(e.target.value);    
-    setPagination(p => ({ ...p, current_page: 1 })); 
-  };
-  
-  const handleProgram = (e) => { 
-    setProgram(e.target.value);   
-    setPagination(p => ({ ...p, current_page: 1 })); 
-  };
-  
-  const handleYear    = (e) => { 
-    setYearLevel(e.target.value); 
-    setPagination(p => ({ ...p, current_page: 1 })); 
-  };
-  
-  const handleSY      = (e) => { 
-    setSchoolYear(e.target.value);
-    setPagination(p => ({ ...p, current_page: 1 })); 
-  };
+  const handleTabChange = (val) => { setActiveTab(val); setPagination(p => ({ ...p, current_page: 1 })); };
+  const handleSearch    = (e)   => { setSearch(e.target.value);    setPagination(p => ({ ...p, current_page: 1 })); };
+  const handleProgram   = (e)   => { setProgram(e.target.value);   setPagination(p => ({ ...p, current_page: 1 })); };
+  const handleYear      = (e)   => { setYearLevel(e.target.value); setPagination(p => ({ ...p, current_page: 1 })); };
+  const handleSY        = (e)   => { setSchoolYear(e.target.value);setPagination(p => ({ ...p, current_page: 1 })); };
 
   const goTo = (p) =>
     setPagination(prev => ({ ...prev, current_page: Math.max(1, Math.min(p, prev.last_page)) }));
@@ -305,52 +194,24 @@ export default function LibrarianRepository() {
   const end   = Math.min(pagination.current_page * ITEMS_PER_PAGE, pagination.total);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
 
-      {/* PDF Preview Modal */}
-      <PDFPreviewModal
-        isOpen={previewModal.isOpen}
+      <PaperDetailsModal
+        isOpen={detailsModal.isOpen}
         onClose={handleCloseModal}
-        pdfUrl={previewModal.pdfUrl}
-        paperTitle={previewModal.paperTitle}
+        paper={detailsModal.paper}
+        onStatusUpdate={handleStatusUpdate}
       />
 
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-800">Repository</h1>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-600 shadow-sm">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            University Name
-          </div>
-          <select
-            value={schoolYear}
-            onChange={handleSY}
-            className="bg-[#134F4F] text-white text-sm rounded-lg px-3 py-1.5 border-0 focus:outline-none focus:ring-2 focus:ring-teal-400 cursor-pointer"
-          >
-            {schoolYears.length > 0 ? (
-              schoolYears.map(sy => (
-                <option key={sy} value={sy}>SY {sy}</option>
-              ))
-            ) : (
-              <option value="">SY 2025-2026</option>
-            )}
-          </select>
-        </div>
-      </div>
-
       {/* ── Status Tabs ── */}
-      <div className="flex items-center gap-1">
+      <div className="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-xl px-2 py-1.5 shadow-sm">
         {STATUS_TABS.map(tab => (
           <button
             key={tab.value}
             onClick={() => handleTabChange(tab.value)}
-            className={`relative px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`relative px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
               activeTab === tab.value
-                ? "bg-white border border-gray-200 text-gray-800 shadow-sm"
+                ? "bg-gray-100 text-gray-800 shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -367,128 +228,159 @@ export default function LibrarianRepository() {
       {/* ── Table Card ── */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-4">
-          <div className="relative w-full sm:w-72">
+        {/* ── Filters Row ── */}
+        <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-gray-100">
+          {/* Search */}
+          <div className="relative w-72">
             <IoSearchOutline className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search by title, author, keyword"
               value={search}
               onChange={handleSearch}
-              className="pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
             />
           </div>
+          {/* Right-side dropdowns */}
           <div className="flex items-center gap-2">
-            <select value={program} onChange={handleProgram}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500">
+            <FilterSelect value={program} onChange={handleProgram}>
               <option value="">All Programs</option>
               <option value="Computer Science">Computer Science</option>
               <option value="Information Technology">Information Technology</option>
               <option value="Information Systems">Information Systems</option>
-            </select>
-            <select value={yearLevel} onChange={handleYear}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </FilterSelect>
+            <FilterSelect value={yearLevel} onChange={handleYear}>
               <option value="">All Year Level</option>
-              <option value="4th Year">4th Year</option>
-              <option value="3rd Year">3rd Year</option>
-              <option value="2nd Year">2nd Year</option>
-              <option value="1st Year">1st Year</option>
-            </select>
-            <select className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500">
-              <option>Academic Year</option>
-            </select>
+              <option value="4">4th Year</option>
+              <option value="3">3rd Year</option>
+              <option value="2">2nd Year</option>
+              <option value="1">1st Year</option>
+            </FilterSelect>
+            <FilterSelect value={schoolYear} onChange={handleSY}>
+              {schoolYears.length > 0
+                ? schoolYears.map(sy => <option key={sy} value={sy}>{sy}</option>)
+                : <option value="">Academic Year</option>
+              }
+            </FilterSelect>
           </div>
         </div>
 
-        {/* Table */}
+        {/* ── Table ── */}
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="py-16 text-center text-gray-400 text-sm animate-pulse">Loading...</div>
+            <div className="py-20 text-center text-gray-400 text-sm animate-pulse">Loading...</div>
           ) : error ? (
-            <div className="py-16 text-center text-red-400 text-sm">{error}</div>
+            <div className="py-20 text-center text-red-400 text-sm">{error}</div>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full">
               <thead>
-                <tr className="text-xs text-gray-500 border-y border-gray-100 bg-gray-50/50">
-                  <th className="text-left px-6 py-3 font-medium">Research Title</th>
-                  <th className="text-left px-4 py-3 font-medium">Academic Program</th>
-                  <th className="text-left px-4 py-3 font-medium">Year Level</th>
-                  <th className="text-left px-4 py-3 font-medium">Submitted By</th>
-                  <th className="text-left px-4 py-3 font-medium">Date Submitted</th>
-                  <th className="text-left px-4 py-3 font-medium">Status</th>
-                  <th className="text-left px-4 py-3 font-medium">Similarity</th>
-                  <th className="text-left px-4 py-3 font-medium">Action</th>
-                  <th className="text-left px-4 py-3 font-medium">View Details</th>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Research Title</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Academic Program</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Year Level</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Submitted By</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Date Submitted</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Status</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Similarity</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Action</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">View Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {papers.length > 0 ? (
                   papers.map((p) => {
-                    const sim      = p.similarity_percentage ?? 0;
-                    const stat     = p.status?.toLowerCase();
-                    const isCopied = stat === "rejected" && sim >= 60;
-                    const paperId  = p.paper_id || p.id;
+                    const sim       = p.similarity_percentage ?? 0;
+                    const stat      = p.status?.toLowerCase();
+                    const paperId   = p.paper_id || p.id;
+                    const studentName =
+                      p.student?.user?.name ||
+                      (p.student?.user?.first_name && p.student?.user?.last_name
+                        ? `${p.student.user.first_name} ${p.student.user.last_name}`
+                        : p.author || "—");
+                    const yearLvl   = p.year_level || p.student?.year_level || "—";
 
                     return (
-                      <tr key={paperId} className="hover:bg-gray-50/60 transition-colors">
+                      <tr key={paperId} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+
                         {/* Title */}
-                        <td className="px-6 py-3 font-medium text-gray-900 max-w-[180px]">
-                          <span className="line-clamp-2">{p.title ?? "—"}</span>
+                        <td className="px-6 py-5 max-w-[150px]">
+                          <span className="text-sm font-medium text-gray-900 line-clamp-2">{p.title ?? "—"}</span>
                         </td>
-                        {/* Program — handles string OR object */}
-                        <td className="px-4 py-3 text-gray-600">
-                          {getProgramName(p.program)}
+
+                        {/* Program */}
+                        <td className="px-4 py-5 max-w-[140px]">
+                          <span className="text-sm text-gray-600">{getProgramName(p.program)}</span>
                         </td>
+
                         {/* Year Level */}
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                          {p.year_level ?? "—"}
+                        <td className="px-4 py-5 whitespace-nowrap">
+                          <span className="text-sm text-gray-600">{formatYearLevel(yearLvl)}</span>
                         </td>
-                        {/* Author */}
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                          {p.student?.user?.name ?? p.author ?? "—"}
+
+                        {/* Submitted By */}
+                        <td className="px-4 py-5 whitespace-nowrap">
+                          <span className="text-sm text-gray-600">{studentName}</span>
                         </td>
+
                         {/* Date */}
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                          {p.date_submitted || p.created_at
-                            ? new Date(p.date_submitted || p.created_at).toLocaleDateString("en-US", {
-                                month: "numeric", day: "numeric", year: "numeric",
-                              })
-                            : "—"}
+                        <td className="px-4 py-5 whitespace-nowrap">
+                          <span className="text-sm text-gray-500">
+                            {p.date_submitted || p.created_at
+                              ? new Date(p.date_submitted || p.created_at).toLocaleDateString("en-US", {
+                                  month: "numeric", day: "numeric", year: "numeric",
+                                })
+                              : "—"}
+                          </span>
                         </td>
+
                         {/* Status */}
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-5">
                           <StatusBadge status={stat} />
                         </td>
+
                         {/* Similarity */}
-                        <td className="px-4 py-3">
-                          <SimilarityCell
-                            similarity={sim}
-                            note={isCopied ? "Copied Abstract" : null}
-                          />
+                        <td className="px-4 py-5">
+                          <SimilarityCell similarity={sim} />
                         </td>
-                        {/* Action - Only PDF download for approved papers */}
-                        <td className="px-4 py-3">
-                          {stat === "approved" && (
+
+                        {/* Action */}
+                        <td className="px-4 py-5">
+                          {stat === "pending" ? (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleStatusUpdate(paperId, "approved")}
+                                className="px-3 py-1.5 text-xs font-semibold text-white bg-[#134F4F] rounded-lg hover:bg-teal-800 transition-colors"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleStatusUpdate(paperId, "rejected")}
+                                className="px-3 py-1.5 text-xs font-semibold text-red-500 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : (stat === "approved" || stat === "rejected" || stat === "flagged") ? (
                             <a
                               href={`http://127.0.0.1:8000/api/research-papers/${paperId}/download`}
-                              className="flex items-center gap-1 text-red-500 hover:text-red-700 text-xs font-semibold"
+                              className="inline-flex items-center gap-1.5 text-red-500 hover:text-red-700 text-sm font-semibold whitespace-nowrap"
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <IoDocumentTextOutline className="w-4 h-4" /> PDF
+                              <IoDocumentTextOutline className="w-4 h-4" />
+                              PDF
                             </a>
-                          )}
-                          {stat !== "approved" && (
-                            <span className="text-xs text-gray-400">—</span>
+                          ) : (
+                            <span className="text-sm text-gray-300">—</span>
                           )}
                         </td>
-                        {/* View Details - For viewing PDF and approving */}
-                        <td className="px-4 py-3">
-                          <button 
-                            onClick={() => handleViewPDF(p)}
-                            className="p-1.5 bg-[#134F4F] text-white rounded-md hover:bg-teal-800 transition-colors"
-                            title="View PDF"
+
+                        {/* View Details */}
+                        <td className="px-4 py-5">
+                          <button
+                            onClick={() => handleViewDetails(p)}
+                            className="p-2 bg-[#1a3a5c] text-white rounded-lg hover:bg-[#15304f] transition-colors"
+                            title="View Details"
                           >
                             <IoEyeOutline className="w-4 h-4" />
                           </button>
@@ -498,7 +390,7 @@ export default function LibrarianRepository() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={9} className="text-center py-12 text-gray-400 text-sm">
+                    <td colSpan={9} className="text-center py-16 text-gray-400 text-sm">
                       No papers found.
                     </td>
                   </tr>
@@ -508,30 +400,30 @@ export default function LibrarianRepository() {
           )}
         </div>
 
-        {/* Pagination */}
+        {/* ── Pagination ── */}
         {!loading && !error && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+          <div className="flex items-center justify-between px-6 py-3 bg-gray-50/60 border-t border-gray-100">
             <p className="text-xs text-gray-500">
               {pagination.total > 0
-                ? `Showing ${start}–${end} of ${pagination.total} papers`
+                ? `Showing ${start}–${end} of ${pagination.total} pages`
                 : "No results"}
             </p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => goTo(pagination.current_page - 1)}
                 disabled={pagination.current_page === 1}
-                className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                <IoChevronBackOutline className="w-4 h-4" />
+                <IoChevronBackOutline className="w-3.5 h-3.5" />
               </button>
               {pageNums.map((n) => (
                 <button
                   key={n}
                   onClick={() => goTo(n)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium border transition-colors ${
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold border transition-colors ${
                     n === pagination.current_page
                       ? "bg-[#134F4F] text-white border-[#134F4F]"
-                      : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                      : "border-gray-200 bg-white text-gray-600 hover:bg-gray-100"
                   }`}
                 >
                   {n}
@@ -540,9 +432,9 @@ export default function LibrarianRepository() {
               <button
                 onClick={() => goTo(pagination.current_page + 1)}
                 disabled={pagination.current_page === pagination.last_page}
-                className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                <IoChevronForwardOutline className="w-4 h-4" />
+                <IoChevronForwardOutline className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
