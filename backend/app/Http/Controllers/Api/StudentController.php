@@ -23,8 +23,8 @@ class StudentController extends Controller
         $student = $user->student;
 
         // FIXED: Use researchPapers() instead of uploadedPapers()
-        $uploads = $student 
-            ? $student->researchPapers()->count() 
+        $uploads = $student
+            ? $student->researchPapers()->count()
             : 0;
 
         $requests = AccessRequest::where('requesting_user_id', $user->user_id)->count();
@@ -139,25 +139,23 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
-        // FIXED: Check if request already exists
-        $exists = AccessRequest::where([
-            'paper_id' => $paperId,
-            'requesting_user_id' => $user->user_id // Fixed: user_id instead of id
-        ])->exists();
+        $paper = ResearchPaper::findOrFail($paperId);
 
-        if ($exists) {
-            return response()->json(['message' => 'Already requested'], 400);
+        // Optional: still good practice
+        if ($paper->school_id === $user->school_id) {
+            return response()->json(['message' => 'Same school access is automatic.'], 403);
         }
 
         AccessRequest::create([
-            'paper_id' => $paperId,
-            'requesting_user_id' => $user->user_id, // Fixed
+            'paper_id' => $paper->paper_id,
+            'academic_year_id' => $paper->academic_year_id,
+            'requesting_user_id' => $user->user_id,
             'request_message' => $request->message,
             'status' => 'pending',
             'request_date' => now()
         ]);
 
-        return response()->json(['message' => 'Request sent']);
+        return response()->json(['message' => 'Request sent successfully']);
     }
 
     /* 
