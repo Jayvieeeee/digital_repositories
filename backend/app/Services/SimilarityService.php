@@ -14,6 +14,7 @@ class SimilarityService
     
     const HIGH_SIMILARITY_THRESHOLD = 70;
     const MEDIUM_SIMILARITY_THRESHOLD = 50;
+    const MAX_EXECUTION_TIME = 300;
     
     public function __construct()
     {
@@ -523,24 +524,18 @@ class SimilarityService
     private function calculateTextSimilarity($text1, $text2)
     {
         if (empty($text1) || empty($text2)) return 0;
-        
+
         $words1 = explode(' ', $text1);
         $words2 = explode(' ', $text2);
-        
+
         if (count($words1) < 5 || count($words2) < 5) return 0;
-        
+
         $commonWords = array_intersect($words1, $words2);
         $totalUnique = count(array_unique(array_merge($words1, $words2)));
-        
+
         if ($totalUnique == 0) return 0;
-        
-        // Check for sequential matches (phrase matching)
-        $sequentialMatches = $this->findLongestCommonSequence($words1, $words2);
-        $sequentialBonus = ($sequentialMatches / min(count($words1), count($words2))) * 50;
-        
-        $basicScore = (count($commonWords) / $totalUnique) * 100;
-        
-        return min(100, round($basicScore + $sequentialBonus, 2));
+
+        return round((count($commonWords) / $totalUnique) * 100, 2);
     }
 
     /**

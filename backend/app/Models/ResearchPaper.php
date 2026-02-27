@@ -17,6 +17,7 @@ class ResearchPaper extends Model
         'program_id',
         'academic_year_id',
         'title',
+        'keywords',
         'abstract',
         'document_type',
         'pdf_path',

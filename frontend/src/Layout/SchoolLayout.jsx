@@ -41,7 +41,7 @@ export default function LibrarianLayout() {
       <LibrarianSidebar user={user} />
 
       {/* Main content */}
-      <div className="flex-1 ml-64 min-h-screen bg-[#F9FAFB] flex flex-col">
+      <div className="flex-1 ml-56 min-h-screen bg-[#F9FAFB] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b bg-white shadow-sm sticky top-0 z-10">
           <h1 className="text-2xl font-semibold text-gray-900">{pageTitle}</h1>

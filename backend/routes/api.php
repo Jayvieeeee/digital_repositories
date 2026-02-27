@@ -40,19 +40,32 @@ Route::middleware('auth:sanctum')->group(function () {
     /* ===== STUDENT ===== */
     Route::prefix('student')->group(function () {
 
+        // Dashboard
         Route::get('/dashboard', [StudentController::class, 'dashboard']);
+        
+        // Student's own submissions
         Route::get('/submissions-status', [StudentController::class, 'submissionsStatus']);
+        
+        // Access requests (both my requests and all access requests)
         Route::get('/access-requests', [StudentController::class, 'accessRequests']);
-
+        Route::get('/my-requests', [StudentController::class, 'myRequests']);
+        
+        // Browse papers (public papers that student can view)
         Route::get('/papers', [StudentController::class, 'browse']);
         Route::get('/papers/{id}', [StudentController::class, 'show']);
-
-        Route::post('/request/{id}', [StudentController::class, 'requestAccess']);
-        Route::get('/requests', [StudentController::class, 'myRequests']);
-
+        
+        // Request access to restricted papers
+        Route::post('/request-access/{id}', [StudentController::class, 'requestAccess']);
+        
+        // Profile management
         Route::get('/profile', [StudentController::class, 'profile']);
-        Route::put('/update-profile', [StudentController::class, 'updateProfile']);
-        Route::put('/update-password', [StudentController::class, 'updatePassword']);
+        Route::put('/profile', [StudentController::class, 'updateProfile']);
+        Route::put('/password', [StudentController::class, 'updatePassword']);
+    });
+
+    /* ===== SCHOOL (if you have school routes) ===== */
+    Route::prefix('school')->middleware('can:access-school')->group(function () {
+        // Add school-specific routes here
     });
 
 });
