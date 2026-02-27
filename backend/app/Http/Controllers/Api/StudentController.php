@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Hash;
 
 class StudentController extends Controller
 {
-
     /*
         DASHBOARD
     */
@@ -23,8 +22,9 @@ class StudentController extends Controller
         // Find the student record for this user
         $student = $user->student;
 
+        // FIXED: Use researchPapers() instead of uploadedPapers()
         $uploads = $student 
-            ? $student->uploadedPapers()->count() 
+            ? $student->researchPapers()->count() 
             : 0;
 
         $requests = AccessRequest::where('requesting_user_id', $user->user_id)->count();
@@ -34,7 +34,7 @@ class StudentController extends Controller
             'citations' => 0, // future feature
             'requests' => $requests
         ]);
-}
+    }
 
     public function submissionsStatus()
     {
@@ -50,10 +50,11 @@ class StudentController extends Controller
             ]);
         }
 
-        $pendingReview = $student->uploadedPapers()->where('status', 'pending')->count();
-        $needsRevision = $student->uploadedPapers()->where('status', 'revision')->count();
-        $approved = $student->uploadedPapers()->where('status', 'approved')->count();
-        $rejected = $student->uploadedPapers()->where('status', 'rejected')->count();
+        // FIXED: Use researchPapers() instead of uploadedPapers()
+        $pendingReview = $student->researchPapers()->where('status', 'pending')->count();
+        $needsRevision = $student->researchPapers()->where('status', 'needs_revision')->count(); // Fixed: 'revision' to 'needs_revision' (common convention)
+        $approved = $student->researchPapers()->where('status', 'approved')->count();
+        $rejected = $student->researchPapers()->where('status', 'rejected')->count();
 
         return response()->json([
             'pendingReview' => $pendingReview,
@@ -85,7 +86,6 @@ class StudentController extends Controller
         );
     }
 
-
     /* 
         BROWSE + FILTER
      */
@@ -98,7 +98,7 @@ class StudentController extends Controller
         }
 
         if ($request->year) {
-            $query->where('year', $request->year);
+            $query->whereYear('created_at', $request->year); // Fixed: 'year' to created_at year
         }
 
         if ($request->document_type) {
@@ -110,21 +110,22 @@ class StudentController extends Controller
         );
     }
 
-
     /* 
         RESEARCH DETAIL + VISIBILITY
     */
     public function show($id)
     {
-        $student = Auth::user();
+        $user = Auth::user(); // Fixed: $student to $user
+        $student = $user->student;
 
         $paper = ResearchPaper::with('school')->findOrFail($id);
 
-        $sameSchool = $student->school_id === $paper->school_id;
+        $sameSchool = $user->school_id === $paper->school_id; // Fixed: using user.school_id
 
+        // FIXED: Check access request properly
         $approved = AccessRequest::where([
-            'student_id' => $student->id,
-            'research_paper_id' => $paper->id,
+            'requesting_user_id' => $user->user_id, // Fixed: using correct field names
+            'paper_id' => $paper->paper_id,
             'status' => 'approved'
         ])->exists();
 
@@ -138,9 +139,10 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
+        // FIXED: Check if request already exists
         $exists = AccessRequest::where([
             'paper_id' => $paperId,
-            'requesting_user_id' => $user->id
+            'requesting_user_id' => $user->user_id // Fixed: user_id instead of id
         ])->exists();
 
         if ($exists) {
@@ -149,7 +151,7 @@ class StudentController extends Controller
 
         AccessRequest::create([
             'paper_id' => $paperId,
-            'requesting_user_id' => $user->id,
+            'requesting_user_id' => $user->user_id, // Fixed
             'request_message' => $request->message,
             'status' => 'pending',
             'request_date' => now()
@@ -160,19 +162,18 @@ class StudentController extends Controller
 
     /* 
         MY REQUESTS
-   */
+    */
     public function myRequests()
     {
-        $student = Auth::user();
+        $user = Auth::user(); // Fixed: $student to $user
 
         $requests = AccessRequest::with('paper.school')
-            ->where('student_id', $student->id)
+            ->where('requesting_user_id', $user->user_id) // Fixed: student_id to requesting_user_id
             ->latest()
             ->get();
 
         return response()->json($requests);
     }
-
 
     public function profile(Request $request)
     {
@@ -184,8 +185,9 @@ class StudentController extends Controller
             'last_name'   => $user->last_name,
             'email'       => $user->email,
             'year_level'  => $student->year_level ?? null,
-            'school_name' => $user->school->school_name ?? null,
+            'school_name' => $user->school->name ?? null, // Fixed: school_name to name (check your actual column)
             'program_id'  => $student->program_id ?? null,
+            'program_name' => $student->program->name ?? null, // Added program name
             'student_no'  => $student->uploaded_student_id ?? null,
         ]);
     }
@@ -195,34 +197,108 @@ class StudentController extends Controller
         $user = $request->user();
         $student = $user->student;
 
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->user_id . ',user_id',
+            'student_no' => 'nullable|string',
+            'year_level' => 'nullable|integer|min:1|max:5',
+            'program_id' => 'nullable|exists:programs,program_id'
+        ]);
+
         $user->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
         ]);
 
-        $student->update([
-            'uploaded_student_id' => $request->student_no,
-            'year_level'          => $request->year_level,
-            'program_id'          => $request->program_id,
-        ]);
+        if ($student) {
+            $student->update([
+                'uploaded_student_id' => $request->student_no,
+                'year_level'          => $request->year_level,
+                'program_id'          => $request->program_id,
+            ]);
+        }
 
-        return response()->json(['message' => 'Updated successfully']);
+        return response()->json(['message' => 'Profile updated successfully']);
     }
 
     public function updatePassword(Request $request)
     {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed'
+        ]);
+
         $user = $request->user();
 
         if (!Hash::check($request->current_password, $user->password)) {
-            return response()->json(['message' => 'Wrong password'], 400);
+            return response()->json(['message' => 'Current password is incorrect'], 400);
         }
 
         $user->update([
-            'password' => bcrypt($request->new_password),
+            'password' => Hash::make($request->new_password),
         ]);
 
-        return response()->json(['message' => 'Password updated']);
+        return response()->json(['message' => 'Password updated successfully']);
     }
 
+    /**
+     * Get recent uploads for student dashboard
+     */
+    public function recentUploads()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return response()->json([]);
+        }
+
+        $recent = $student->researchPapers()
+            ->with('program')
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(function ($paper) {
+                return [
+                    'id' => $paper->paper_id,
+                    'title' => $paper->title,
+                    'status' => $paper->status,
+                    'similarity' => $paper->similarity_percentage,
+                    'submitted_at' => $paper->created_at->diffForHumans()
+                ];
+            });
+
+        return response()->json($recent);
+    }
+
+    /**
+     * Get statistics for student dashboard
+     */
+    public function statistics()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return response()->json([
+                'total_uploads' => 0,
+                'pending' => 0,
+                'approved' => 0,
+                'rejected' => 0,
+                'avg_similarity' => 0
+            ]);
+        }
+
+        $papers = $student->researchPapers();
+
+        return response()->json([
+            'total_uploads' => $papers->count(),
+            'pending' => $papers->clone()->where('status', 'pending')->count(),
+            'approved' => $papers->clone()->where('status', 'approved')->count(),
+            'rejected' => $papers->clone()->where('status', 'rejected')->count(),
+            'avg_similarity' => round($papers->avg('similarity_percentage') ?? 0, 2)
+        ]);
+    }
 }

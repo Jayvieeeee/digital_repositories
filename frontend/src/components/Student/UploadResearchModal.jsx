@@ -37,12 +37,12 @@ export default function UploadResearchModal({ isOpen, onClose, onSubmitSuccess }
     formData.append("title", form.title);
     formData.append("abstract", form.abstract);
     formData.append("keywords", form.keywords);
-    formData.append("file", form.file);
+    formData.append("pdf", form.file); 
     formData.append("document_type", form.document_type);
     setUploading(true);
 
     try {
-      await api.post("student/research/upload", formData, {
+      await api.post("/research-papers", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
@@ -164,15 +164,15 @@ export default function UploadResearchModal({ isOpen, onClose, onSubmitSuccess }
               ) : (
                 <>
                   <p className="text-xs text-gray-600 font-medium">Click to upload or drag and drop</p>
-                  <p className="text-xs text-gray-400 mt-0.5">PNG, JPG, or PDF (max: 50MB)</p>
+                  <p className="text-xs text-gray-400 mt-0.5">PDF (max: 50MB)</p>
                 </>
               )}
             </div>
             <input
               ref={fileInputRef}
               type="file"
-              name="file"
-              accept=".pdf,.png,.jpg,.jpeg"
+              name="file"     
+              accept=".pdf"
               onChange={handleChange}
               className="hidden"
             />

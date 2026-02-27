@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\SchoolController;
 use App\Http\Controllers\ResearchPaperController;
 use App\Http\Controllers\Api\ProgramController;
 
-/* ================= AUTH ================= */
+/* ================= PUBLIC AUTH ================= */
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register-student', [AuthController::class, 'registerStudent']);
@@ -19,16 +19,25 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::get('/schools', [SchoolController::class, 'index']);
 
-
 /* ================= PROTECTED ================= */
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    /* ===== AUTH ===== */
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    /* ===== PROGRAMS ===== */
     Route::get('/programs', [ProgramController::class, 'index']);
 
-    /* ===== STUDENT ===== */
+    /* ===== RESEARCH PAPERS ===== */
+    Route::get('/research-papers', [ResearchPaperController::class, 'index']);
+    Route::post('/research-papers', [ResearchPaperController::class, 'store']);
+    Route::get('/research-papers/{id}', [ResearchPaperController::class, 'show']);
+    Route::patch('/research-papers/{id}/status', [ResearchPaperController::class, 'updateStatus']);
+    Route::get('/research-papers/{id}/download', [ResearchPaperController::class, 'download']);
 
+    /* ===== STUDENT ===== */
     Route::prefix('student')->group(function () {
 
         Route::get('/dashboard', [StudentController::class, 'dashboard']);
@@ -38,8 +47,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/papers', [StudentController::class, 'browse']);
         Route::get('/papers/{id}', [StudentController::class, 'show']);
 
-         Route::post('/research/upload', [ResearchPaperController::class, 'store']);
-
         Route::post('/request/{id}', [StudentController::class, 'requestAccess']);
         Route::get('/requests', [StudentController::class, 'myRequests']);
 
@@ -47,7 +54,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/update-profile', [StudentController::class, 'updateProfile']);
         Route::put('/update-password', [StudentController::class, 'updatePassword']);
     });
-
-
 
 });

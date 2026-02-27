@@ -14,7 +14,6 @@ import {
 /* ───────────────────── MOCK DATA ───────────────────── */
 
 const MOCK_STATS = {
-  advisers: 4,
   students: 128,
   uploadedPapers: 56,
   pendingAccessRequests: 3,
@@ -57,12 +56,6 @@ const MOCK_PAPERS = [
   },
 ];
 
-const MOCK_ADVISERS = [
-  { id: 1, first_name: "Ana", last_name: "Lopez", sections: 3, papers: 12, status: "Active" },
-  { id: 2, first_name: "Mark", last_name: "Reyes", sections: 2, papers: 8, status: "Active" },
-  { id: 3, first_name: "John", last_name: "Cruz", sections: 4, papers: 15, status: "Active" },
-  { id: 4, first_name: "Lea", last_name: "Santos", sections: 1, papers: 5, status: "Inactive" },
-];
 
 const MOCK_STUDENT_APPROVALS = [
   { id: 1, name: "Carlo Mendoza", status_label: "New Registration" },
@@ -131,7 +124,6 @@ function Avatar({ name, color = "bg-teal-700" }) {
 export default function LibrarianDashboard() {
   const [stats] = useState(MOCK_STATS);
   const [papers] = useState(MOCK_PAPERS);
-  const [advisers] = useState(MOCK_ADVISERS);
   const [studentApprovals] = useState(MOCK_STUDENT_APPROVALS);
   const [accessRequests] = useState(MOCK_ACCESS_REQUESTS);
 
@@ -150,7 +142,7 @@ export default function LibrarianDashboard() {
   });
 
   const STAT_CARDS = [
-    { icon: IoPeopleOutline,          iconColor: "text-blue-500",   count: stats.advisers,                label: "Research Advisers",         linkLabel: "View List" },
+ 
     { icon: IoPersonOutline,          iconColor: "text-teal-500",   count: stats.students,                label: "Students",                  linkLabel: "View List" },
     { icon: IoDocumentTextOutline,    iconColor: "text-green-500",  count: stats.uploadedPapers,          label: "Uploaded Papers",           linkLabel: "View Papers" },
     { icon: IoSendOutline,            iconColor: "text-yellow-500", count: stats.pendingAccessRequests,   label: "Pending Access Requests",   linkLabel: "Review" },
@@ -249,25 +241,6 @@ export default function LibrarianDashboard() {
       {/* Bottom Panels */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* Advisers */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900">Research Advisers</h2>
-          </div>
-
-          <div className="divide-y divide-gray-50">
-            {advisers.map((a) => (
-              <div key={a.id} className="flex items-center gap-3 px-6 py-3">
-                <Avatar name={`${a.first_name} ${a.last_name}`} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{a.first_name} {a.last_name}</p>
-                  <p className="text-xs text-gray-500">{a.sections} Sections · {a.papers} papers</p>
-                </div>
-                <StatusBadge status={a.status} />
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Right Side */}
         <div className="space-y-6">

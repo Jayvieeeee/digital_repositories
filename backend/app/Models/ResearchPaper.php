@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class ResearchPaper extends Model
 {
+    protected $table = 'research_papers';
     protected $primaryKey = 'paper_id';
+    public $incrementing = true;
 
-     protected $fillable = [
+    protected $fillable = [
         'reference_number',
         'school_id',
         'student_id',
@@ -17,21 +19,29 @@ class ResearchPaper extends Model
         'title',
         'abstract',
         'document_type',
-        'similarity_percentage',
         'pdf_path',
-        'status',
-        'approved_at',
+        'raw_text',
+        'cleaned_text',
+        'similarity_percentage',
+        'status'
     ];
 
-    /* relations */
+    protected $casts = [
+        'similarity_percentage' => 'float'
+    ];
 
-    public function school()
+    public function student()
     {
-        return $this->belongsTo(School::class, 'school_id');
+        return $this->belongsTo(Student::class, 'student_id', 'student_id');
     }
 
-    public function requests()
+    public function program()
     {
-        return $this->hasMany(AccessRequest::class, 'paper_id');
+        return $this->belongsTo(Program::class, 'program_id', 'program_id');
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id', 'academic_year_id');
     }
 }

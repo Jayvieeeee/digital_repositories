@@ -23,7 +23,6 @@ import Settings from "./views/Student/Settings";
 
 import SchoolDashboard from "./views/School/Dashboard";
 import Repository from "./views/School/Repository";
-import ResearchAdviser from "./views/School/ResearchAdviser";
 import Students from "./views/School/Students";
 import AccessRequest from "./views/School/AccessRequest";
 import StudentApproval from "./views/School/StudentApproval";
@@ -57,7 +56,6 @@ export default function App() {
     <Route element={<SchoolLayout />}>
       <Route path="/school-dashboard" element={<SchoolDashboard />} />
       <Route path="/repository" element={<Repository />} />
-      <Route path="/research-advisers" element={<ResearchAdviser />} />
       <Route path="/students" element={<Students />} />
       <Route path="/school-access-requests" element={<AccessRequest />} />
       <Route path="/student-approvals" element={<StudentApproval />} />

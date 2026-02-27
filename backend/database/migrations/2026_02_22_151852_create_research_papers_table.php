@@ -25,15 +25,14 @@ return new class extends Migration
             $table->string('title');
             $table->text('abstract');
 
-            $table->enum('document_type', [
-                'thesis',
-                'capstone',
-                'journal',
-                'article'
-            ]);
+            $table->enum('document_type', ['thesis','capstone','journal','article']);
 
             $table->float('similarity_percentage')->nullable();
             $table->string('pdf_path');
+
+            $table->longText('raw_text')->nullable();
+            $table->longText('cleaned_text')->nullable();
+            $table->longText('vector_data')->nullable();
 
             $table->string('status')->default('pending');
             $table->timestamp('approved_at')->nullable();

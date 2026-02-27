@@ -18,7 +18,6 @@ export default function LibrarianSidebar({ user, notifications = {} }) {
   const navItems = [
     { id: "dashboard",         label: "Dashboard",         icon: IoHomeOutline,            path: "/school-dashboard", section: "admin"    },
     { id: "repository",        label: "Repository",        icon: IoFolderOpenOutline,      path: "/repository",          section: "admin"    },
-    { id: "advisers",          label: "Research Advisers", icon: IoPeopleOutline,          path: "/research-advisers",   section: "people"   },
     { id: "students",          label: "Students",          icon: LuGraduationCap ,         path: "/students",            section: "people"   },
     { id: "access-requests",   label: "Access Requests",   icon: IoSendOutline,            path: "/school-access-requests",     section: "requests", badge: notifications.accessRequests   },
     { id: "student-approvals", label: "Student Approvals", icon: IoCheckmarkCircleOutline, path: "/student-approvals",   section: "requests", badge: notifications.studentApprovals },
