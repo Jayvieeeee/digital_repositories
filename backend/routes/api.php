@@ -46,12 +46,12 @@ Route::middleware('auth:sanctum')->group(function () {
         // Student's own submissions
         Route::get('/submissions-status', [StudentController::class, 'submissionsStatus']);
         
-        // Access requests (both my requests and all access requests)
+        // Access requests
         Route::get('/access-requests', [StudentController::class, 'accessRequests']);
         Route::get('/my-requests', [StudentController::class, 'myRequests']);
         
-        // Browse papers (public papers that student can view)
-        Route::get('/papers', [StudentController::class, 'browse']);
+        // Browse papers 
+        Route::get('/papers', [ResearchPaperController::class, 'getStudentPapers']);
         Route::get('/papers/{id}', [StudentController::class, 'show']);
         
         // Request access to restricted papers

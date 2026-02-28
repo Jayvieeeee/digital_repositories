@@ -245,7 +245,7 @@ class SimilarityService
         foreach ($sectionPatterns as $sectionName => $pattern) {
             if (preg_match($pattern, $text, $matches)) {
                 $sectionText = trim($matches[1] ?? $matches[0]);
-                if (!empty($sectionText) && strlen($sectionText) > 100) {
+                if (!empty($sectionText) && strlen($sectionText) > 50) { // Binawasan ang threshold
                     $sections[$sectionName] = $sectionText;
                 }
             }
@@ -256,7 +256,7 @@ class SimilarityService
             $paragraphs = explode("\n\n", $text);
             foreach ($paragraphs as $index => $paragraph) {
                 $paragraph = trim($paragraph);
-                if (strlen($paragraph) > 100) { // Only substantial paragraphs
+                if (strlen($paragraph) > 50) { // Binawasan ang threshold
                     $sections['paragraph_' . ($index + 1)] = $paragraph;
                 }
             }
@@ -285,59 +285,68 @@ class SimilarityService
             ];
         }
         
-        // Extract sections from new paper
-        $newSections = $this->extractSections($newText);
-        
         foreach ($existingPapers as $paper) {
             if ($newPaperId && $paper->paper_id == $newPaperId) continue;
             if (empty($paper->cleaned_text)) continue;
             
-            // Extract sections from existing paper
-            $existingSections = $this->extractSections($paper->cleaned_text);
+            Log::info("Comparing with paper ID: " . $paper->paper_id);
             
-            // Calculate similarities using multiple methods
-            $overallScore = $this->calculateOverallSimilarity($newText, $paper->cleaned_text);
-            $sectionScore = $this->calculateSectionSimilarity($newSections, $existingSections);
-            $phraseScore = $this->calculatePhraseSimilarity($newText, $paper->cleaned_text);
+            // Calculate similarity between NEW paper and this existing paper
+            $sections1 = $this->extractSections($newText);
+            $sections2 = $this->extractSections($paper->cleaned_text);
+
+            $sectionScore = $this->calculateSectionSimilarity($sections1, $sections2);
             $paragraphScore = $this->calculateParagraphSimilarity($newText, $paper->cleaned_text);
+            $phraseScore = $this->calculatePhraseSimilarity($newText, $paper->cleaned_text);
+            $ngramScore = $this->calculateOverallSimilarity($newText, $paper->cleaned_text);
+            $textScore = $this->calculateTextSimilarity($newText, $paper->cleaned_text);
             
-            // Weighted score (customize weights as needed)
-            $weightedScore = 
-                ($overallScore * 0.3) +
-                ($sectionScore * 0.3) +
-                ($phraseScore * 0.2) +
-                ($paragraphScore * 0.2);
+            // Kunin ang average ng lahat ng scores para sa paper na ito
+            $scores = [$sectionScore, $paragraphScore, $phraseScore, $ngramScore, $textScore];
             
-            $finalScore = round($weightedScore, 2);
+            // Remove zeros but keep at least one score
+            $validScores = array_filter($scores, function($score) {
+                return $score > 0;
+            });
             
-            // Store breakdown in a format that can be JSON encoded
-            $breakdown = [
-                'overall' => $overallScore,
-                'section_based' => $sectionScore,
-                'phrase_based' => $phraseScore,
-                'paragraph_based' => $paragraphScore,
-                'matched_sections' => $this->getMatchedSections($newSections, $existingSections)
-            ];
+            if (empty($validScores)) {
+                // If all scores are zero, use text similarity as fallback (without threshold)
+                $textScore = $this->calculateTextSimilarity($newText, $paper->cleaned_text);
+                $averageScore = $textScore > 0 ? $textScore : 0;
+            } else {
+                $averageScore = array_sum($validScores) / count($validScores);
+            }
             
-            $results[$paper->paper_id] = [
+            // Ensure score is between 0-100
+            $finalScore = round(min(100, max(0, $averageScore)), 2);
+            
+            Log::info("Average score for paper {$paper->paper_id}: {$finalScore}%", [
+                'section' => $sectionScore,
+                'paragraph' => $paragraphScore,
+                'phrase' => $phraseScore,
+                'ngram' => $ngramScore,
+                'text' => $textScore
+            ]);
+            
+            $results[] = [
                 'paper_id' => $paper->paper_id,
                 'title' => $paper->title,
-                'similarity_score' => $finalScore,
-                'breakdown' => $breakdown
+                'similarity_score' => $finalScore
             ];
             
+            // Check kung ito ang pinakamataas na score sa lahat ng papers
             if ($finalScore > $highestOverall) {
                 $highestOverall = $finalScore;
                 $mostSimilarPaperId = $paper->paper_id;
             }
         }
         
-        // Sort results by similarity score (highest first)
+        // Sort results by similarity (highest first)
         usort($results, function($a, $b) {
             return $b['similarity_score'] <=> $a['similarity_score'];
         });
         
-        Log::info("Similarity comparison complete. Highest score: {$highestOverall}%");
+        Log::info("Overall highest similarity: {$highestOverall}% from paper ID: {$mostSimilarPaperId}");
         
         return [
             'highest_similarity' => $highestOverall,
@@ -361,7 +370,7 @@ class SimilarityService
         foreach ($sections1 as $key1 => $section1) {
             foreach ($sections2 as $key2 => $section2) {
                 $similarity = $this->calculateTextSimilarity($section1, $section2);
-                if ($similarity > 40) {
+                if ($similarity > 20) { // Binawasan ang threshold
                     $matches[] = [
                         'section1' => $key1,
                         'section2' => $key2,
@@ -379,19 +388,28 @@ class SimilarityService
      */
     private function calculateOverallSimilarity($text1, $text2)
     {
-        // Generate n-grams (phrases of 3-5 words)
-        $ngrams1 = $this->generateNgrams($text1, [3, 4, 5]);
-        $ngrams2 = $this->generateNgrams($text2, [3, 4, 5]);
+        // Generate n-grams (phrases of 2-4 words para mas maraming match)
+        $ngrams1 = $this->generateNgrams($text1, [2, 3, 4]);
+        $ngrams2 = $this->generateNgrams($text2, [2, 3, 4]);
         
-        if (empty($ngrams1) || empty($ngrams2)) return 0;
+        if (empty($ngrams1) || empty($ngrams2)) {
+            // Fallback to text similarity
+            return $this->calculateTextSimilarity($text1, $text2);
+        }
         
         // Calculate Jaccard similarity on n-grams
         $intersection = array_intersect($ngrams1, $ngrams2);
-        $union = array_unique(array_merge($ngrams1, $ngrams2));
         
-        if (count($union) == 0) return 0;
+        if (empty($intersection)) {
+            return 0;
+        }
         
-        return round((count($intersection) / count($union)) * 100, 2);
+        // Use the smaller set as denominator para mas mataas ang score
+        $denominator = min(count($ngrams1), count($ngrams2));
+        
+        if ($denominator == 0) return 0;
+        
+        return round(min(100, (count($intersection) / $denominator) * 100), 2);
     }
 
     /**
@@ -409,7 +427,7 @@ class SimilarityService
         foreach ($sizes as $size) {
             for ($i = 0; $i < count($words) - $size + 1; $i++) {
                 $ngram = implode(' ', array_slice($words, $i, $size));
-                if (strlen($ngram) > 10) { // Only substantial phrases
+                if (strlen($ngram) > 5) { // Binawasan ang threshold
                     $ngrams[] = $ngram;
                 }
             }
@@ -423,7 +441,9 @@ class SimilarityService
      */
     private function calculateSectionSimilarity($sections1, $sections2)
     {
-        if (empty($sections1) || empty($sections2)) return 0;
+        if (empty($sections1) || empty($sections2)) {
+            return 0;
+        }
         
         $totalScore = 0;
         $matchedSections = 0;
@@ -438,14 +458,21 @@ class SimilarityService
                 }
             }
             
-            if ($bestMatch > 30) { // Threshold for significant match
+            // Remove threshold - kahit maliit na match, i-count
+            if ($bestMatch > 0) {
                 $totalScore += $bestMatch;
                 $matchedSections++;
             }
         }
         
-        return $matchedSections > 0 ? round($totalScore / $matchedSections, 2) : 0;
+        // If no sections matched, return 0
+        if ($matchedSections == 0) return 0;
+        
+        // Calculate average
+        $averageScore = $totalScore / $matchedSections;
+        return round(min(100, $averageScore), 2);
     }
+
 
     /**
      * Calculate phrase-based similarity using sliding window
@@ -455,19 +482,19 @@ class SimilarityService
         $words1 = explode(' ', $text1);
         $words2 = explode(' ', $text2);
         
-        if (count($words1) < 20 || count($words2) < 20) {
+        if (count($words1) < 10 || count($words2) < 10) { // Binawasan ang threshold
             return $this->calculateTextSimilarity($text1, $text2);
         }
         
-        $windowSize = 20; // Words per window
+        $windowSize = 10; // Binawasan ang window size
         $matches = 0;
         $totalWindows = 0;
         
-        for ($i = 0; $i < count($words1) - $windowSize + 1; $i += 5) { // Slide by 5 words
+        for ($i = 0; $i < count($words1) - $windowSize + 1; $i += 3) { // Slide by 3 words
             $phrase1 = implode(' ', array_slice($words1, $i, $windowSize));
             $bestMatch = 0;
             
-            for ($j = 0; $j < count($words2) - $windowSize + 1; $j += 5) {
+            for ($j = 0; $j < count($words2) - $windowSize + 1; $j += 3) {
                 $phrase2 = implode(' ', array_slice($words2, $j, $windowSize));
                 $similarity = $this->calculateTextSimilarity($phrase1, $phrase2);
                 if ($similarity > $bestMatch) {
@@ -475,13 +502,17 @@ class SimilarityService
                 }
             }
             
-            if ($bestMatch > 40) { // Threshold for phrase match
+            // Remove threshold
+            if ($bestMatch > 0) {
                 $matches += $bestMatch;
             }
             $totalWindows++;
         }
         
-        return $totalWindows > 0 ? round($matches / $totalWindows, 2) : 0;
+        if ($totalWindows == 0) return 0;
+        
+        $averageMatch = $matches / $totalWindows;
+        return round(min(100, $averageMatch), 2);
     }
 
     /**
@@ -496,12 +527,12 @@ class SimilarityService
         $matchedParagraphs = 0;
         
         foreach ($paragraphs1 as $p1) {
-            if (strlen($p1) < 100) continue; // Skip short paragraphs
+            if (strlen($p1) < 50) continue; // Binawasan ang threshold
             
             $bestMatch = 0;
             
             foreach ($paragraphs2 as $p2) {
-                if (strlen($p2) < 100) continue;
+                if (strlen($p2) < 50) continue; // Binawasan ang threshold
                 
                 $similarity = $this->calculateTextSimilarity($p1, $p2);
                 if ($similarity > $bestMatch) {
@@ -509,13 +540,17 @@ class SimilarityService
                 }
             }
             
-            if ($bestMatch > 35) { // Threshold for paragraph match
+            // Remove threshold
+            if ($bestMatch > 0) {
                 $totalScore += $bestMatch;
                 $matchedParagraphs++;
             }
         }
         
-        return $matchedParagraphs > 0 ? round($totalScore / $matchedParagraphs, 2) : 0;
+        if ($matchedParagraphs == 0) return 0;
+        
+        $averageScore = $totalScore / $matchedParagraphs;
+        return round(min(100, $averageScore), 2);
     }
 
     /**
@@ -525,41 +560,17 @@ class SimilarityService
     {
         if (empty($text1) || empty($text2)) return 0;
 
-        $words1 = explode(' ', $text1);
-        $words2 = explode(' ', $text2);
+        // Normalize spaces and lowercase
+        $text1 = strtolower(trim(preg_replace('/\s+/', ' ', $text1)));
+        $text2 = strtolower(trim(preg_replace('/\s+/', ' ', $text2)));
 
-        if (count($words1) < 5 || count($words2) < 5) return 0;
+        // If texts are exactly the same
+        if ($text1 === $text2) return 100;
 
-        $commonWords = array_intersect($words1, $words2);
-        $totalUnique = count(array_unique(array_merge($words1, $words2)));
-
-        if ($totalUnique == 0) return 0;
-
-        return round((count($commonWords) / $totalUnique) * 100, 2);
-    }
-
-    /**
-     * Find longest common sequence of words
-     */
-    private function findLongestCommonSequence($words1, $words2)
-    {
-        $maxLength = 0;
+        // Use similar_text for better accuracy
+        similar_text($text1, $text2, $percent);
         
-        for ($i = 0; $i < count($words1); $i++) {
-            for ($j = 0; $j < count($words2); $j++) {
-                $currentLength = 0;
-                while ($i + $currentLength < count($words1) && 
-                       $j + $currentLength < count($words2) && 
-                       $words1[$i + $currentLength] == $words2[$j + $currentLength]) {
-                    $currentLength++;
-                }
-                if ($currentLength > $maxLength) {
-                    $maxLength = $currentLength;
-                }
-            }
-        }
-        
-        return $maxLength;
+        return round(min(100, $percent), 2);
     }
 
     /**

@@ -36,6 +36,11 @@ class ResearchPaper extends Model
         return $this->belongsTo(Student::class, 'student_id', 'student_id');
     }
 
+    public function school()
+    {
+        return $this->belongsTo(School::class, 'school_id', 'school_id');
+    }
+
     public function program()
     {
         return $this->belongsTo(Program::class, 'program_id', 'program_id');

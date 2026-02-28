@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ResearchPaper;
 use App\Models\AcademicYear;
 use App\Models\SimilarityResult;
+use App\Jobs\ProcessSimilarityJob;
 use App\Services\SimilarityService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -124,141 +125,100 @@ class ResearchPaperController extends Controller
         }
     }
 
-/**
- * Store a newly created research paper
- */
-public function store(Request $request)
-{
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'keywords' => 'required|string|max:255',
-        'abstract' => 'required|string',
-        'document_type' => 'required|in:thesis,capstone,journal,article',
-        'pdf' => 'required|file|mimes:pdf|max:51200' // Max 50MB
-    ]);
+    /**
+     * Store a newly created research paper
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'keywords' => 'required|string|max:255',
+            'abstract' => 'required|string',
+            'document_type' => 'required|in:thesis,capstone,journal,article',
+            'pdf' => 'required|file|mimes:pdf|max:51200' // Max 50MB
+        ]);
 
-    DB::beginTransaction();
-    
-    try {
-        $user = Auth::user();
-        if (!$user) throw new \Exception('User not authenticated');
-
-        $student = $user->student;
-        if (!$student) throw new \Exception('User has no linked student record');
-
-        $academicYear = AcademicYear::where('is_active', true)->first();
-        if (!$academicYear) throw new \Exception('No active academic year found');
-
-        // STORE PDF
-        $pdfPath = $request->file('pdf')->store('research_papers', 'local');
-
-        // EXTRACT + CLEAN TEXT - but don't fail if extraction fails
-        $rawText = '';
-        $cleanText = '';
-        $textExtracted = false;
+        DB::beginTransaction();
         
         try {
-            $rawText = $this->similarityService->extractText($pdfPath);
-            $cleanText = $this->similarityService->cleanText($rawText);
-            $textExtracted = !empty($cleanText);
-        } catch (\Exception $e) {
-            Log::warning('PDF text extraction failed but continuing upload: ' . $e->getMessage());
-            // Continue with empty text
-        }
+            $user = Auth::user();
+            if (!$user) throw new \Exception('User not authenticated');
 
-        // SAVE PAPER
-        $researchPaper = ResearchPaper::create([
-            'reference_number' => 'REF-' . strtoupper(uniqid()),
-            'school_id' => $user->school_id,
-            'student_id' => $student->student_id,
-            'program_id' => $student->program_id,
-            'academic_year_id' => $academicYear->academic_year_id,
-            'title' => $request->title,
-            'keywords' => $request->keywords,
-            'abstract' => $request->abstract,
-            'document_type' => $request->document_type,
-            'pdf_path' => $pdfPath,
-            'raw_text' => $rawText,
-            'cleaned_text' => $cleanText,
-            'status' => 'pending', // Keep original status
-            'similarity_percentage' => 0
-        ]);
+            $student = $user->student;
+            if (!$student) throw new \Exception('User has no linked student record');
 
-        // COMPARE WITH EXISTING PAPERS (only if text was extracted)
-        $highestSimilarity = 0;
-        $mostSimilarPaperId = null;
+            $academicYear = AcademicYear::where('is_active', true)->first();
+            if (!$academicYear) throw new \Exception('No active academic year found');
 
-        if ($textExtracted) {
+            // STORE PDF
+            $pdfPath = $request->file('pdf')->store('research_papers', 'local');
+
+            // EXTRACT + CLEAN TEXT - but don't fail if extraction fails
+            $rawText = '';
+            $cleanText = '';
+            $textExtracted = false;
+            
             try {
-                $existingPapers = ResearchPaper::where('school_id', $user->school_id)
-                    ->whereNotNull('cleaned_text')
-                    ->where('paper_id', '!=', $researchPaper->paper_id)
-                    ->get();
-
-                if ($existingPapers->isNotEmpty()) {
-                    $comparisonResults = $this->similarityService->comparePapers(
-                        $cleanText,
-                        $existingPapers,
-                        $researchPaper->paper_id
-                    );
-
-                    // Save similarity results
-                    foreach ($comparisonResults['all_results'] as $result) {
-                        SimilarityResult::create([
-                            'source_paper_id' => $researchPaper->paper_id,
-                            'compared_paper_id' => $result['paper_id'],
-                            'similarity_score' => $result['similarity_score'],
-                            'checked_at' => now(),
-                        ]);
-                    }
-
-                    $highestSimilarity = $comparisonResults['highest_similarity'];
-                    $mostSimilarPaperId = $comparisonResults['most_similar_paper_id'];
-                    
-                    // Update paper with similarity
-                    $researchPaper->similarity_percentage = $highestSimilarity;
-                    
-                    // Auto-flag if high similarity (optional)
-                    if ($highestSimilarity >= 70) {
-                        $researchPaper->status = 'flagged';
-                    }
-                    
-                    $researchPaper->save();
-                }
+                $rawText = $this->similarityService->extractText($pdfPath);
+                $cleanText = $this->similarityService->cleanText($rawText);
+                $textExtracted = !empty($cleanText);
             } catch (\Exception $e) {
-                Log::error('Similarity comparison failed: ' . $e->getMessage());
-                // Continue - paper already saved
+                Log::warning('PDF text extraction failed but continuing upload: ' . $e->getMessage());
+                // Continue with empty text
             }
-        } else {
-            // Just save with 0 similarity
-            $researchPaper->save();
+
+            // SAVE PAPER
+            $researchPaper = ResearchPaper::create([
+                'reference_number' => 'REF-' . strtoupper(uniqid()),
+                'school_id' => $user->school_id,
+                'student_id' => $student->student_id,
+                'program_id' => $student->program_id,
+                'academic_year_id' => $academicYear->academic_year_id,
+                'title' => $request->title,
+                'keywords' => $request->keywords,
+                'abstract' => $request->abstract,
+                'document_type' => $request->document_type,
+                'pdf_path' => $pdfPath,
+                'raw_text' => $rawText,
+                'cleaned_text' => $cleanText,
+                'status' => 'pending', // Keep original status
+                'similarity_percentage' => 0
+            ]);
+
+            $mostSimilarPaperId = null;
+
+            if ($textExtracted) {
+                ProcessSimilarityJob::dispatch($researchPaper);
+
+                $researchPaper->similarity_percentage = 0;
+                $researchPaper->save();
+            }
+
+            DB::commit();
+
+            $message = $textExtracted 
+                ? 'Research paper uploaded successfully with similarity check.'
+                : 'Research paper uploaded successfully. (Note: PDF text could not be extracted)';
+
+            return response()->json([
+                'message' => $message,
+                'similarity_percentage' => $researchPaper->similarity_percentage,
+                'data' => $researchPaper,
+                'most_similar_paper_id' => $mostSimilarPaperId
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('UPLOAD ERROR: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Upload failed.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        DB::commit();
-
-        $message = $textExtracted 
-            ? 'Research paper uploaded successfully with similarity check.'
-            : 'Research paper uploaded successfully. (Note: PDF text could not be extracted)';
-
-        return response()->json([
-            'message' => $message,
-            'similarity_percentage' => $researchPaper->similarity_percentage,
-            'data' => $researchPaper,
-            'most_similar_paper_id' => $mostSimilarPaperId
-        ], 201);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('UPLOAD ERROR: ' . $e->getMessage(), [
-            'trace' => $e->getTraceAsString()
-        ]);
-        
-        return response()->json([
-            'message' => 'Upload failed.',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
 
     /**
      * Display the specified research paper
@@ -519,4 +479,113 @@ public function store(Request $request)
             ], 500);
         }
     }
+
+    /**
+     * Get research papers for the authenticated student
+     */
+    public function getStudentPapers(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
+
+            $student = $user->student;
+            
+            if (!$student) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User is not a student'
+                ], 403);
+            }
+
+            // Always eager-load consistent relations
+            $query = ResearchPaper::with([
+                'student.user',
+                'program',
+                'academicYear',
+                'school'
+            ])->where('student_id', $student->student_id);
+
+            // Status filter
+            if ($request->has('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+
+            // Sorting
+            $sortField = $request->get('sort_by', 'created_at');
+            $sortDirection = $request->get('sort_direction', 'desc');
+            $query->orderBy($sortField, $sortDirection);
+
+            // Pagination
+            $perPage = $request->get('per_page', 10);
+            $papers = $query->paginate($perPage);
+
+            // Standardized transformation (same structure as index() and show())
+            $papers->getCollection()->transform(function ($paper) {
+
+                return [
+                    'paper_id' => $paper->paper_id,
+                    'id' => $paper->paper_id, // frontend compatibility
+                    'title' => $paper->title,
+                    'keywords' => $paper->keywords,
+                    'abstract' => $paper->abstract,
+                    'document_type' => $paper->document_type,
+                    'status' => $paper->status,
+                    'similarity_percentage' => $paper->similarity_percentage,
+                    'year_level' => $paper->year_level ?? ($paper->student->year_level ?? null),
+                    'date_submitted' => $paper->created_at,
+                    'created_at' => $paper->created_at,
+                    'citations_count' => $paper->citations_count ?? 0,
+
+                    // ✅ Program (standardized)
+                    'program' => $paper->program ? [
+                        'program_id' => $paper->program->program_id,
+                        'program_name' => $paper->program->program_name ?? $paper->program->name,
+                    ] : null,
+
+                    // ✅ School (standardized)
+                    'school' => $paper->school ? [
+                        'school_id' => $paper->school->school_id,
+                        'school_name' => $paper->school->school_name,
+                    ] : null,
+
+                    // ✅ Student (standardized)
+                    'student' => $paper->student ? [
+                        'student_id' => $paper->student->student_id,
+                        'year_level' => $paper->student->year_level,
+                        'user' => $paper->student->user ? [
+                            'user_id' => $paper->student->user->user_id,
+                            'name' => trim($paper->student->user->first_name . ' ' . $paper->student->user->last_name),
+                            'first_name' => $paper->student->user->first_name,
+                            'last_name' => $paper->student->user->last_name,
+                            'email' => $paper->student->user->email,
+                        ] : null,
+                    ] : null,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $papers
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch student papers: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch research papers',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
 }

@@ -47,12 +47,13 @@ function StatusBadge({ status }) {
     approved: "text-green-600 border-green-400",
     pending:  "text-orange-400 border-orange-400",
     rejected: "text-red-500 border-red-400",
-    flagged:  "text-gray-500 border-gray-400",
   };
   const key = status?.toLowerCase();
-  const label = key ? key.charAt(0).toUpperCase() + key.slice(1) : "—";
+  // Default to pending if status not found (for flagged papers, show as pending)
+  const statusKey = map[key] ? key : "pending";
+  const label = statusKey ? statusKey.charAt(0).toUpperCase() + statusKey.slice(1) : "—";
   return (
-    <span className={`inline-block px-3 py-0.5 rounded-full text-xs font-medium bg-white border whitespace-nowrap ${map[key] || "border-gray-300 text-gray-500"}`}>
+    <span className={`inline-block px-3 py-0.5 rounded-full text-xs font-medium bg-white border whitespace-nowrap ${map[statusKey] || "border-gray-300 text-gray-500"}`}>
       {label}
     </span>
   );
@@ -121,20 +122,32 @@ export default function LibrarianRepository() {
   const fetchPapers = useCallback(async () => {
     setLoading(true);
     try {
+      // Map "all" to undefined to get all papers including flagged
+      const statusParam = activeTab !== "all" ? activeTab : undefined;
+      
       const res = await api.get(`/research-papers`, {
         params: {
           search:      search || undefined,
           program:     program || undefined,
           year_level:  yearLevel || undefined,
           school_year: schoolYear || undefined,
-          status:      activeTab !== "all" ? activeTab : undefined,
+          status:      statusParam,
           page:        pagination.current_page,
           per_page:    ITEMS_PER_PAGE,
         },
       });
       const paginator     = res.data.data;
       const fetchedPapers = paginator.data ?? [];
-      setPapers(fetchedPapers);
+      
+      // Transform flagged papers to show as pending in the UI
+      const transformedPapers = fetchedPapers.map(paper => {
+        if (paper.status?.toLowerCase() === 'flagged') {
+          return { ...paper, status: 'pending' };
+        }
+        return paper;
+      });
+      
+      setPapers(transformedPapers);
       setPagination({
         current_page: paginator.current_page,
         last_page:    paginator.last_page,
@@ -280,10 +293,10 @@ export default function LibrarianRepository() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Year Level</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Submitted By</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Date Submitted</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Similarity</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Action</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">View Details</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Status</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Similarity</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">Action</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">View Details</th>
                 </tr>
               </thead>
               <tbody>
@@ -360,7 +373,7 @@ export default function LibrarianRepository() {
                                 Reject
                               </button>
                             </div>
-                          ) : (stat === "approved" || stat === "rejected" || stat === "flagged") ? (
+                          ) : (stat === "approved" || stat === "rejected") ? (
                             <a
                               href={`http://127.0.0.1:8000/api/research-papers/${paperId}/download`}
                               className="inline-flex items-center gap-1.5 text-red-500 hover:text-red-700 text-sm font-semibold whitespace-nowrap"
@@ -376,7 +389,7 @@ export default function LibrarianRepository() {
                         </td>
 
                         {/* View Details */}
-                        <td className="px-4 py-5">
+                        <td className="px-4 py-5 text-center">
                           <button
                             onClick={() => handleViewDetails(p)}
                             className="p-2 bg-[#1a3a5c] text-white rounded-lg hover:bg-[#15304f] transition-colors"
